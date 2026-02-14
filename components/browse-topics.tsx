@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getCourses, deleteCourse, getCourseMastery, type SavedCourse } from "@/lib/course-store"
+import MatrixCalendar from "@/components/matrix-calendar"
 
 const TRENDING_TOPICS = [
   { name: "Machine Learning", count: "12.4k studying" },
@@ -257,6 +258,8 @@ export function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTopicsProp
                         <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
                           <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${mastery}%` }} />
                         </div>
+                        {/* Matrix calendar available on the search/browse screen */}
+                        <MatrixCalendar openLabel="Calendar" />
                       </div>
                     </div>
 

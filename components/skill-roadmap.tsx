@@ -11,6 +11,7 @@ import {
   createCourseId,
   getCourseMastery,
 } from "@/lib/course-store"
+import { addEvent } from "@/lib/calendar-store"
 import { LessonView } from "@/components/course/lesson-view"
 import { FlashcardView } from "@/components/course/flashcard-view"
 import { QuizView } from "@/components/course/quiz-view"
@@ -18,7 +19,7 @@ import { SummaryView } from "@/components/course/summary-view"
 import { PracticeView } from "@/components/course/practice-view"
 import { ContentLoader } from "@/components/course/content-loader"
 import { PatriotAIChatbot } from "@/components/patriot-ai-chatbot"
-import { TutorCalendar } from "@/components/tutor-calendar"
+import MatrixCalendar from "@/components/matrix-calendar"
 
 // Icons
 function CheckIcon() {
@@ -84,12 +85,13 @@ interface SkillRoadmapProps {
 
 export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: existingCourseId, onBack }: SkillRoadmapProps) {
   const [course, setCourse] = useState<SavedCourse | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [loadingMessage, setLoadingMessage] = useState("Analyzing your proficiency level...")
   const [contentGenProgress, setContentGenProgress] = useState<{ current: number; total: number; name: string } | null>(null)
   const [revealedLevels, setRevealedLevels] = useState(0)
   const [activeSkill, setActiveSkill] = useState<{ levelIdx: number; skillIdx: number } | null>(null)
   const fetchRef = useRef(false)
+  // deadline prompt removed — generation proceeds without intermediate prompt
 
   // Load existing course or generate new one
   useEffect(() => {
@@ -111,11 +113,12 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
       } catch {}
     }
 
-    // Generate new course via SSE stream
+    // Generate a new course immediately when no existing course id
     generateCourse()
   }, [topic, materials, proficiency, existingCourseId])
 
-  async function generateCourse() {
+  async function generateCourse(deadline?: number) {
+    setLoading(true)
     const courseObj: SavedCourse = {
       id: existingCourseId ?? createCourseId(),
       topic,
@@ -124,6 +127,7 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
       levels: [],
       createdAt: Date.now(),
       lastAccessedAt: Date.now(),
+      ...(deadline ? { deadline } : {}),
     }
 
     try {
@@ -182,6 +186,15 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
     saveCourse(courseObj)
     setCourse(courseObj)
     setLoading(false)
+    // If a deadline was provided elsewhere, add it to the calendar
+    try {
+      if ((courseObj as any).deadline) {
+        const start = new Date((courseObj as any).deadline)
+        const end = new Date(start.getTime() + 60 * 60 * 1000)
+        addEvent({ title: `Deadline: ${topic}`, start: start.toISOString(), end: end.toISOString(), courseId: courseObj.id, recurrence: "none" })
+      }
+    } catch {}
+
   }
 
   function handleStreamEvent(event: string, data: any, courseObj: SavedCourse) {
@@ -375,6 +388,7 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
 
   return (
     <div className="min-h-svh bg-background">
+      {/* deadline prompt removed */}
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
@@ -407,6 +421,8 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
           <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
             {totalSkills} skills across {course.levels.length} levels
           </p>
+
+          {/* deadline tracker removed */}
 
           {/* Mastery Ring */}
           <div className="mx-auto mt-6 flex flex-col items-center gap-2">
@@ -587,7 +603,8 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
 
       {/* PatriotAI Chatbot - Modal variant on roadmap page */}
       <PatriotAIChatbot variant="modal" />
-      <TutorCalendar />
+      {/* Matrix calendar (separate from course view) */}
+      <MatrixCalendar openLabel="Calendar" />
     </div>
   )
 }
