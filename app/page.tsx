@@ -2,6 +2,7 @@
 
 import { useCallback, useState, useRef, useEffect } from "react"
 import { SplashScreen } from "@/components/splash-screen"
+import { LandingPage } from "@/components/landing-page"
 import { SignInForm } from "@/components/sign-in-form"
 import { BrowseTopics } from "@/components/browse-topics"
 import { StudyPreference } from "@/components/study-preference"
@@ -11,7 +12,9 @@ import { SkillRoadmap } from "@/components/skill-roadmap"
 type AppView = "signin" | "browse" | "preference" | "assessment" | "roadmap"
 
 export default function Page() {
-  const [splashDone, setSplashDone] = useState(false)
+  // Splash screen disabled by default — set to true to skip it
+  const [splashDone, setSplashDone] = useState(true)
+  const [landingDone, setLandingDone] = useState(false)
   const [view, setView] = useState<AppView>("signin")
   const [displayedView, setDisplayedView] = useState<AppView>("signin")
   const [opacity, setOpacity] = useState(0)
@@ -85,7 +88,8 @@ export default function Page() {
 
   return (
     <>
-      {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
+      {!landingDone && <LandingPage onComplete={() => setLandingDone(true)} />}
+      {landingDone && !splashDone && <SplashScreen onComplete={handleSplashComplete} />}
 
       <div
         style={{
