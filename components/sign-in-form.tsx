@@ -79,24 +79,6 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
         </p>
       </div>
 
-      {/* Guest option */}
-      <Button
-        variant="outline"
-        className="w-full h-11 gap-2.5 font-medium mb-4 border-dashed border-primary/30 text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/50 transition-colors"
-        type="button"
-        onClick={handleGuest}
-      >
-        <UserIcon />
-        Continue as Guest
-      </Button>
-
-      <div className="relative my-5">
-        <Separator />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs uppercase tracking-widest text-muted-foreground">
-          or sign in
-        </span>
-      </div>
-
       <Button
         variant="outline"
         className="w-full h-11 gap-3 font-medium"
@@ -163,6 +145,20 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
           {isLoading ? "Signing in..." : "Sign in"}
         </Button>
       </form>
+
+      <div className="relative my-5">
+        <Separator />
+      </div>
+
+      <Button
+        variant="outline"
+        className="w-full h-11 gap-2.5 font-medium border-dashed border-primary/30 text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/50 transition-colors"
+        type="button"
+        onClick={handleGuest}
+      >
+        <UserIcon />
+        Continue as Guest
+      </Button>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         {"Don't have an account? "}

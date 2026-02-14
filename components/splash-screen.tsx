@@ -7,7 +7,7 @@ interface SplashScreenProps {
 }
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
-  const [phase, setPhase] = useState<"hidden" | "faint" | "bold" | "fade" | "exit">("hidden")
+  const [phase, setPhase] = useState<"hidden" | "faint" | "bold" | "fade" | "exit" | "done">("hidden")
   const hasStarted = useRef(false)
   const hasCompleted = useRef(false)
 
@@ -17,20 +17,25 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
     document.body.style.overflow = "hidden"
 
-    const t1 = setTimeout(() => setPhase("faint"), 300)
-    const t2 = setTimeout(() => setPhase("bold"), 1400)
-    const t3 = setTimeout(() => setPhase("fade"), 3200)
-    const t4 = setTimeout(() => setPhase("exit"), 4600)
-    const t5 = setTimeout(() => {
+    const timers: ReturnType<typeof setTimeout>[] = []
+
+    timers.push(setTimeout(() => setPhase("faint"), 200))
+    timers.push(setTimeout(() => setPhase("bold"), 1200))
+    timers.push(setTimeout(() => setPhase("fade"), 2800))
+    timers.push(setTimeout(() => {
+      setPhase("exit")
+    }, 4000))
+    timers.push(setTimeout(() => {
       if (!hasCompleted.current) {
         hasCompleted.current = true
         document.body.style.overflow = ""
+        setPhase("done")
         onComplete()
       }
-    }, 5800)
+    }, 5400))
 
     return () => {
-      ;[t1, t2, t3, t4, t5].forEach(clearTimeout)
+      timers.forEach(clearTimeout)
       if (!hasCompleted.current) {
         document.body.style.overflow = ""
       }
@@ -38,43 +43,47 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const opacity =
+  if (phase === "done") return null
+
+  const textOpacity =
     phase === "hidden" ? 0
-    : phase === "faint" ? 0.15
+    : phase === "faint" ? 0.12
     : phase === "bold" ? 1
-    : phase === "fade" ? 0
     : 0
 
-  const weight = phase === "bold" ? 700 : 300
+  const textWeight = phase === "bold" ? 700 : 300
 
-  const yShift =
-    phase === "hidden" ? "12px"
+  const textY =
+    phase === "hidden" ? "16px"
     : phase === "faint" ? "0px"
     : phase === "bold" ? "0px"
-    : "-8px"
+    : "-6px"
 
-  const scale =
-    phase === "hidden" ? 0.96
+  const textScale =
+    phase === "hidden" ? 0.95
     : phase === "faint" ? 0.98
     : phase === "bold" ? 1
-    : 1.01
+    : 1.02
+
+  const overlayOpacity = phase === "exit" ? 0 : 1
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center"
       style={{
         backgroundColor: "#e8f5e9",
-        opacity: phase === "exit" ? 0 : 1,
-        transition: "opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
+        opacity: overlayOpacity,
+        transition: "opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1)",
         pointerEvents: phase === "exit" ? "none" : "auto",
       }}
       aria-live="polite"
     >
+      {/* Soft radial glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 60% 50% at center, rgba(76,175,80,0.1) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 50% at center, rgba(76,175,80,0.08) 0%, transparent 70%)",
         }}
       />
 
@@ -84,12 +93,12 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           style={{
             color: "#2e7d32",
             transition:
-              phase === "fade"
+              phase === "fade" || phase === "exit"
                 ? "opacity 1.2s ease-in-out, transform 1.2s ease-in-out, font-weight 0.4s ease"
-                : "opacity 0.9s ease-out, transform 0.9s ease-out, font-weight 0.4s ease",
-            opacity,
-            transform: `translateY(${yShift}) scale(${scale})`,
-            fontWeight: weight,
+                : "opacity 0.8s ease-out, transform 0.8s ease-out, font-weight 0.4s ease",
+            opacity: textOpacity,
+            transform: `translateY(${textY}) scale(${textScale})`,
+            fontWeight: textWeight,
           }}
         >
           Your AI Study Co-Pilot
@@ -99,7 +108,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           className="text-base md:text-lg text-center tracking-wide"
           style={{
             color: "#66bb6a",
-            transition: "opacity 0.8s ease-out 0.2s",
+            transition: "opacity 0.8s ease-out 0.15s",
             opacity: phase === "bold" ? 0.7 : 0,
           }}
         >
