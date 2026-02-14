@@ -179,7 +179,7 @@ export function ProficiencyAssessment({ topic, onComplete }: ProficiencyAssessme
   }
 
   function getQuizScore() {
-    return quizAnswers.reduce(
+    return quizAnswers.reduce<number>(
       (score, answer, idx) => score + (answer === quiz[idx]?.correct ? 1 : 0),
       0
     )

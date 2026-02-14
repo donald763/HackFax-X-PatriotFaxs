@@ -28,6 +28,7 @@ export interface SavedCourse {
   levels: SavedLevel[]
   createdAt: number
   lastAccessedAt: number
+  deadline?: number
 }
 
 const STORAGE_KEY = "studypilot_courses"
