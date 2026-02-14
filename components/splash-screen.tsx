@@ -7,33 +7,30 @@ interface SplashScreenProps {
 }
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
-  const [phase, setPhase] = useState<"hidden" | "faint" | "bold" | "fade" | "exit" | "done">("hidden")
+  const [phase, setPhase] = useState<"hidden" | "faint" | "bold" | "fade" | "exit">("hidden")
+  const hasStarted = useRef(false)
   const hasCompleted = useRef(false)
-  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([])
 
   useEffect(() => {
-    // Guard against double-mount (React strict mode)
-    if (hasCompleted.current) return
+    if (hasStarted.current) return
+    hasStarted.current = true
 
     document.body.style.overflow = "hidden"
 
-    timersRef.current = [
-      setTimeout(() => setPhase("faint"), 400),
-      setTimeout(() => setPhase("bold"), 1600),
-      setTimeout(() => setPhase("fade"), 3800),
-      setTimeout(() => setPhase("exit"), 5200),
-      setTimeout(() => {
-        if (!hasCompleted.current) {
-          hasCompleted.current = true
-          setPhase("done")
-          document.body.style.overflow = ""
-          onComplete()
-        }
-      }, 6200),
-    ]
+    const t1 = setTimeout(() => setPhase("faint"), 300)
+    const t2 = setTimeout(() => setPhase("bold"), 1400)
+    const t3 = setTimeout(() => setPhase("fade"), 3200)
+    const t4 = setTimeout(() => setPhase("exit"), 4600)
+    const t5 = setTimeout(() => {
+      if (!hasCompleted.current) {
+        hasCompleted.current = true
+        document.body.style.overflow = ""
+        onComplete()
+      }
+    }, 5800)
 
     return () => {
-      timersRef.current.forEach(clearTimeout)
+      ;[t1, t2, t3, t4, t5].forEach(clearTimeout)
       if (!hasCompleted.current) {
         document.body.style.overflow = ""
       }
@@ -41,7 +38,26 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (phase === "done") return null
+  const opacity =
+    phase === "hidden" ? 0
+    : phase === "faint" ? 0.15
+    : phase === "bold" ? 1
+    : phase === "fade" ? 0
+    : 0
+
+  const weight = phase === "bold" ? 700 : 300
+
+  const yShift =
+    phase === "hidden" ? "12px"
+    : phase === "faint" ? "0px"
+    : phase === "bold" ? "0px"
+    : "-8px"
+
+  const scale =
+    phase === "hidden" ? 0.96
+    : phase === "faint" ? 0.98
+    : phase === "bold" ? 1
+    : 1.01
 
   return (
     <div
@@ -49,8 +65,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       style={{
         backgroundColor: "#e8f5e9",
         opacity: phase === "exit" ? 0 : 1,
-        transform: phase === "exit" ? "scale(1.05)" : "scale(1)",
-        transition: "opacity 1s ease-in-out, transform 1s ease-in-out",
+        transition: "opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)",
         pointerEvents: phase === "exit" ? "none" : "auto",
       }}
       aria-live="polite"
@@ -59,7 +74,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 60% 50% at center, rgba(76,175,80,0.12) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 50% at center, rgba(76,175,80,0.1) 0%, transparent 70%)",
         }}
       />
 
@@ -70,19 +85,11 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             color: "#2e7d32",
             transition:
               phase === "fade"
-                ? "opacity 1.2s ease-in-out, transform 1.2s ease-in-out, font-weight 0.5s ease"
-                : "opacity 1s ease-out, transform 1s ease-out, font-weight 0.5s ease",
-            opacity:
-              phase === "hidden" ? 0
-              : phase === "faint" ? 0.18
-              : phase === "bold" ? 1
-              : 0,
-            transform:
-              phase === "hidden" ? "translateY(12px) scale(0.96)"
-              : phase === "faint" ? "translateY(0) scale(0.98)"
-              : phase === "bold" ? "translateY(0) scale(1)"
-              : "translateY(-8px) scale(1.01)",
-            fontWeight: phase === "bold" ? 700 : 300,
+                ? "opacity 1.2s ease-in-out, transform 1.2s ease-in-out, font-weight 0.4s ease"
+                : "opacity 0.9s ease-out, transform 0.9s ease-out, font-weight 0.4s ease",
+            opacity,
+            transform: `translateY(${yShift}) scale(${scale})`,
+            fontWeight: weight,
           }}
         >
           Your AI Study Co-Pilot
@@ -92,7 +99,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           className="text-base md:text-lg text-center tracking-wide"
           style={{
             color: "#66bb6a",
-            transition: "opacity 0.8s ease-out 0.3s",
+            transition: "opacity 0.8s ease-out 0.2s",
             opacity: phase === "bold" ? 0.7 : 0,
           }}
         >
@@ -124,15 +131,8 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
       <style jsx>{`
         @keyframes splashPulse {
-          0%,
-          100% {
-            opacity: 0.25;
-            transform: scale(0.8);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.3);
-          }
+          0%, 100% { opacity: 0.25; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.3); }
         }
       `}</style>
     </div>

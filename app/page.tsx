@@ -1,33 +1,51 @@
 "use client"
 
-import { useCallback, useState, useRef } from "react"
+import { useCallback, useState, useRef, useEffect } from "react"
 import { SplashScreen } from "@/components/splash-screen"
 import { SignInForm } from "@/components/sign-in-form"
 import { BrowseTopics } from "@/components/browse-topics"
 import { StudyPreference } from "@/components/study-preference"
+import { SkillRoadmap } from "@/components/skill-roadmap"
 
-type AppView = "splash" | "signin" | "browse" | "preference"
+type AppView = "splash" | "signin" | "browse" | "preference" | "roadmap"
 
 export default function Page() {
   const [view, setView] = useState<AppView>("splash")
-  const [transitioning, setTransitioning] = useState(false)
+  const [nextView, setNextView] = useState<AppView | null>(null)
+  const [fadeState, setFadeState] = useState<"in" | "out">("in")
   const [selectedTopic, setSelectedTopic] = useState("")
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
   const splashDone = useRef(false)
 
   const handleSplashComplete = useCallback(() => {
     if (splashDone.current) return
     splashDone.current = true
+    // Splash already fades out on its own, so we just swap view
     setView("signin")
+    setFadeState("in")
   }, [])
 
   function transitionTo(next: AppView) {
-    setTransitioning(true)
-    setTimeout(() => {
-      setView(next)
-      window.scrollTo(0, 0)
-      setTimeout(() => setTransitioning(false), 50)
-    }, 400)
+    setFadeState("out")
+    setNextView(next)
   }
+
+  // When fade-out completes, swap view and fade in
+  useEffect(() => {
+    if (fadeState !== "out" || !nextView) return
+    const t = setTimeout(() => {
+      setView(nextView)
+      setNextView(null)
+      window.scrollTo(0, 0)
+      // Small delay to let DOM update before fading in
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setFadeState("in")
+        })
+      })
+    }, 500)
+    return () => clearTimeout(t)
+  }, [fadeState, nextView])
 
   function handleSignIn() {
     transitionTo("browse")
@@ -39,18 +57,25 @@ export default function Page() {
   }
 
   function handlePreferenceComplete(preferences: string[]) {
-    // For now just log - this is where you'd navigate to the actual study session
-    console.log("Topic:", selectedTopic, "Preferences:", preferences)
+    setSelectedMaterials(preferences)
+    transitionTo("roadmap")
   }
 
+  function handleBackToBrowse() {
+    transitionTo("browse")
+  }
+
+  // Splash is its own thing - it handles its own animation
   if (view === "splash") {
     return <SplashScreen onComplete={handleSplashComplete} />
   }
 
   return (
     <div
-      className="transition-opacity duration-500 ease-out"
-      style={{ opacity: transitioning ? 0 : 1 }}
+      style={{
+        opacity: fadeState === "in" ? 1 : 0,
+        transition: "opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+      }}
     >
       {view === "signin" && (
         <main className="flex min-h-svh">
@@ -97,6 +122,14 @@ export default function Page() {
         <StudyPreference
           topic={selectedTopic}
           onComplete={handlePreferenceComplete}
+        />
+      )}
+
+      {view === "roadmap" && (
+        <SkillRoadmap
+          topic={selectedTopic}
+          materials={selectedMaterials}
+          onBack={handleBackToBrowse}
         />
       )}
     </div>
