@@ -7,12 +7,12 @@ const _inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const _spaceMono = Space_Mono({ weight: ['400', '700'], subsets: ['latin'], variable: '--font-space-mono' })
 
 export const metadata: Metadata = {
-  title: 'Sign In',
-  description: 'Sign in to your account',
+  title: 'Your AI Study Co-Pilot',
+  description: 'Sign in to your AI-powered study companion',
 }
 
 export const viewport: Viewport = {
-  themeColor: '#f0ebe4',
+  themeColor: '#e8f5e9',
 }
 
 export default function RootLayout({
