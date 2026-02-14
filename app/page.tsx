@@ -4,50 +4,63 @@ import { useCallback, useState, useRef, useEffect } from "react"
 import { SplashScreen } from "@/components/splash-screen"
 import { SignInForm } from "@/components/sign-in-form"
 import { BrowseTopics } from "@/components/browse-topics"
+import { ProficiencyAssessment } from "@/components/proficiency-assessment"
 import { StudyPreference } from "@/components/study-preference"
 import { SkillRoadmap } from "@/components/skill-roadmap"
 
-type AppView = "signin" | "browse" | "preference" | "roadmap"
+type AppView = "signin" | "browse" | "assessment" | "preference" | "roadmap"
 
 export default function Page() {
   const [splashDone, setSplashDone] = useState(false)
   const [view, setView] = useState<AppView>("signin")
   const [displayedView, setDisplayedView] = useState<AppView>("signin")
   const [contentOpacity, setContentOpacity] = useState(0)
+  const [contentTranslate, setContentTranslate] = useState(20)
   const [selectedTopic, setSelectedTopic] = useState("")
+  const [proficiency, setProficiency] = useState(0)
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
   const splashFired = useRef(false)
   const isTransitioning = useRef(false)
 
-  // Splash complete: just mark done so overlay dissolves, signin is already rendered beneath
   const handleSplashComplete = useCallback(() => {
     if (splashFired.current) return
     splashFired.current = true
     setSplashDone(true)
-    // Fade signin in after splash overlay starts dissolving
     requestAnimationFrame(() => {
-      setContentOpacity(1)
+      requestAnimationFrame(() => {
+        setContentOpacity(1)
+        setContentTranslate(0)
+      })
     })
   }, [])
 
-  // Smooth view transition: fade out -> swap -> fade in
   function transitionTo(next: AppView) {
     if (isTransitioning.current) return
     isTransitioning.current = true
-    setContentOpacity(0) // fade out current
+
+    // Phase 1: fade out + slide up current view
+    setContentOpacity(0)
+    setContentTranslate(-12)
 
     setTimeout(() => {
       setView(next)
       setDisplayedView(next)
       window.scrollTo({ top: 0, behavior: "instant" })
-      // Let DOM paint the new view, then fade it in
+
+      // Reset to below position before fading in
+      setContentTranslate(20)
+
+      // Phase 2: fade in + slide up new view
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setContentOpacity(1)
-          isTransitioning.current = false
+          setContentTranslate(0)
+          setTimeout(() => {
+            isTransitioning.current = false
+          }, 550)
         })
       })
-    }, 450) // matches fade-out duration
+    }, 500)
   }
 
   function handleSignIn() {
@@ -56,6 +69,11 @@ export default function Page() {
 
   function handleSelectTopic(topic: string) {
     setSelectedTopic(topic)
+    transitionTo("assessment")
+  }
+
+  function handleAssessmentComplete(level: number) {
+    setProficiency(level)
     transitionTo("preference")
   }
 
@@ -70,15 +88,14 @@ export default function Page() {
 
   return (
     <>
-      {/* Splash overlay - renders on top, dissolves to reveal signin beneath */}
       {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
 
-      {/* Content always rendered, just faded */}
       <div
         style={{
           opacity: contentOpacity,
-          transition: "opacity 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-          willChange: "opacity",
+          transform: `translateY(${contentTranslate}px)`,
+          transition: "opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)",
+          willChange: "opacity, transform",
         }}
       >
         {displayedView === "signin" && (
@@ -120,6 +137,13 @@ export default function Page() {
 
         {displayedView === "browse" && (
           <BrowseTopics onSelectTopic={handleSelectTopic} />
+        )}
+
+        {displayedView === "assessment" && (
+          <ProficiencyAssessment
+            topic={selectedTopic}
+            onComplete={handleAssessmentComplete}
+          />
         )}
 
         {displayedView === "preference" && (
