@@ -19,12 +19,11 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
     const timers: ReturnType<typeof setTimeout>[] = []
 
+    // gentle timeline: faint -> bold -> soft fade -> exit -> done
     timers.push(setTimeout(() => setPhase("faint"), 200))
-    timers.push(setTimeout(() => setPhase("bold"), 1200))
-    timers.push(setTimeout(() => setPhase("fade"), 2800))
-    timers.push(setTimeout(() => {
-      setPhase("exit")
-    }, 4000))
+    timers.push(setTimeout(() => setPhase("bold"), 1100))
+    timers.push(setTimeout(() => setPhase("fade"), 3300))
+    timers.push(setTimeout(() => setPhase("exit"), 4200))
     timers.push(setTimeout(() => {
       if (!hasCompleted.current) {
         hasCompleted.current = true
@@ -32,7 +31,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
         setPhase("done")
         onComplete()
       }
-    }, 5400))
+    }, 5200))
 
     return () => {
       timers.forEach(clearTimeout)
@@ -49,13 +48,16 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
     phase === "hidden" ? 0
     : phase === "faint" ? 0.12
     : phase === "bold" ? 1
+    : phase === "fade" ? 0.18
     : 0
 
   const textWeight = phase === "bold" ? 700 : 300
 
   const textScale =
     phase === "hidden" ? 0.97
+    : phase === "faint" ? 0.99
     : phase === "bold" ? 1
+    : phase === "fade" ? 0.995
     : 0.99
 
   const overlayOpacity = phase === "exit" ? 0 : 1
@@ -85,27 +87,26 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           className="text-4xl md:text-6xl lg:text-7xl tracking-tight text-center select-none"
           style={{
             color: "#2e7d32",
-            transition:
-              phase === "fade" || phase === "exit"
-                ? "opacity 1.2s ease-in-out, transform 1.2s ease-in-out, font-weight 0.4s ease"
-                : "opacity 0.8s ease-out, transform 0.8s ease-out, font-weight 0.4s ease",
+            transition: "opacity 1s cubic-bezier(0.2,0,0.2,1), transform 1s cubic-bezier(0.2,0,0.2,1)",
             opacity: textOpacity,
             transform: `scale(${textScale})`,
             fontWeight: textWeight,
+            willChange: "opacity, transform",
           }}
         >
-          Your AI Study Co-Pilot
+          StudyPilot
         </h1>
 
         <p
           className="text-base md:text-lg text-center tracking-wide"
           style={{
-            color: "#66bb6a",
-            transition: "opacity 0.8s ease-out 0.15s",
-            opacity: phase === "bold" ? 0.7 : 0,
+            color: "#2e7d32",
+            transition: "opacity 1s cubic-bezier(0.2,0,0.2,1) 0.18s, transform 1s cubic-bezier(0.2,0,0.2,1) 0.18s",
+            opacity: phase === "bold" ? 0.9 : phase === "fade" ? 0.15 : 0,
+            transform: phase === "bold" ? "translateY(0)" : "translateY(4px)",
           }}
         >
-          Learn smarter, not harder
+          Your personal tutor AI
         </p>
 
         <div
