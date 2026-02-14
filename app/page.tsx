@@ -97,7 +97,15 @@ export default function Page() {
 
   return (
     <>
-      {!landingDone && <LandingPage onComplete={() => setLandingDone(true)} />}
+      {!landingDone && (
+        <LandingPage
+          onComplete={() => {
+            // Ensure splash shows after landing completes
+            setSplashDone(false)
+            setLandingDone(true)
+          }}
+        />
+      )}
       {landingDone && !splashDone && <SplashScreen onComplete={handleSplashComplete} />}
 
       <div
