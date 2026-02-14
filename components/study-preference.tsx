@@ -83,10 +83,11 @@ const MATERIALS = [
 ]
 
 interface StudyPreferenceProps {
+  topic: string
   onComplete: (preferences: string[]) => void
 }
 
-export function StudyPreference({ onComplete }: StudyPreferenceProps) {
+export function StudyPreference({ topic, onComplete }: StudyPreferenceProps) {
   const [selected, setSelected] = useState<string[]>([])
 
   function toggle(id: string) {
@@ -99,11 +100,20 @@ export function StudyPreference({ onComplete }: StudyPreferenceProps) {
     <div className="flex min-h-svh items-center justify-center bg-background px-6 py-12">
       <div className="w-full max-w-lg">
         <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary" aria-hidden="true">
+              <path d="M11 20A7 7 0 0 1 9.8 6.9C15.5 4.9 17 3.5 19 2c1 2 2 4.5 2 8 0 5.5-4.78 10-10 10Z" />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </svg>
+          </div>
+          <p className="text-xs font-medium uppercase tracking-widest text-primary mb-2">
+            Studying
+          </p>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground text-balance">
-            How do you like to study?
+            {topic}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-            {"Select your preferred study materials. You can change these later."}
+            {"How would you like to study this topic? Pick your preferred materials."}
           </p>
         </div>
 
@@ -149,7 +159,7 @@ export function StudyPreference({ onComplete }: StudyPreferenceProps) {
           >
             {selected.length === 0
               ? "Select at least one"
-              : `Continue with ${selected.length} selected`}
+              : `Start studying with ${selected.length} material${selected.length > 1 ? "s" : ""}`}
           </Button>
           <button
             type="button"

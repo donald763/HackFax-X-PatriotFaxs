@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
 interface SplashScreenProps {
   onComplete: () => void
@@ -8,27 +8,38 @@ interface SplashScreenProps {
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [phase, setPhase] = useState<"hidden" | "faint" | "bold" | "fade" | "exit" | "done">("hidden")
+  const hasCompleted = useRef(false)
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([])
 
   useEffect(() => {
+    // Guard against double-mount (React strict mode)
+    if (hasCompleted.current) return
+
     document.body.style.overflow = "hidden"
 
-    const timers = [
+    timersRef.current = [
       setTimeout(() => setPhase("faint"), 400),
       setTimeout(() => setPhase("bold"), 1600),
       setTimeout(() => setPhase("fade"), 3800),
       setTimeout(() => setPhase("exit"), 5200),
       setTimeout(() => {
-        setPhase("done")
-        document.body.style.overflow = ""
-        onComplete()
+        if (!hasCompleted.current) {
+          hasCompleted.current = true
+          setPhase("done")
+          document.body.style.overflow = ""
+          onComplete()
+        }
       }, 6200),
     ]
 
     return () => {
-      timers.forEach(clearTimeout)
-      document.body.style.overflow = ""
+      timersRef.current.forEach(clearTimeout)
+      if (!hasCompleted.current) {
+        document.body.style.overflow = ""
+      }
     }
-  }, [onComplete])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (phase === "done") return null
 
@@ -44,7 +55,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       }}
       aria-live="polite"
     >
-      {/* Soft radial glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -54,7 +64,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       />
 
       <div className="relative flex flex-col items-center gap-6 px-6">
-        {/* Main text */}
         <h1
           className="text-4xl md:text-6xl lg:text-7xl tracking-tight text-center select-none"
           style={{
@@ -79,7 +88,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           Your AI Study Co-Pilot
         </h1>
 
-        {/* Subtle tagline */}
         <p
           className="text-base md:text-lg text-center tracking-wide"
           style={{
@@ -91,7 +99,6 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
           Learn smarter, not harder
         </p>
 
-        {/* Loading dots */}
         <div
           className="flex gap-2 mt-2"
           style={{

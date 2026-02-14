@@ -3,14 +3,15 @@
 import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
 const TRENDING_TOPICS = [
-  { name: "Machine Learning", count: "12.4k studying", color: "bg-primary" },
-  { name: "Organic Chemistry", count: "8.9k studying", color: "bg-primary" },
-  { name: "Linear Algebra", count: "7.2k studying", color: "bg-primary" },
-  { name: "US History", count: "6.1k studying", color: "bg-primary" },
-  { name: "Microeconomics", count: "5.8k studying", color: "bg-primary" },
+  { name: "Machine Learning", count: "12.4k studying" },
+  { name: "Organic Chemistry", count: "8.9k studying" },
+  { name: "Linear Algebra", count: "7.2k studying" },
+  { name: "US History", count: "6.1k studying" },
+  { name: "Microeconomics", count: "5.8k studying" },
 ]
 
 const CATEGORIES = [
@@ -98,6 +99,15 @@ function TrendingIcon() {
   )
 }
 
+function ArrowRightIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </svg>
+  )
+}
+
 function LeafIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -107,7 +117,11 @@ function LeafIcon() {
   )
 }
 
-export function BrowseTopics() {
+interface BrowseTopicsProps {
+  onSelectTopic: (topic: string) => void
+}
+
+export function BrowseTopics({ onSelectTopic }: BrowseTopicsProps) {
   const [search, setSearch] = useState("")
 
   const filteredCategories = CATEGORIES.map((cat) => ({
@@ -116,6 +130,15 @@ export function BrowseTopics() {
       t.toLowerCase().includes(search.toLowerCase())
     ),
   })).filter((cat) => (search === "" ? true : cat.topics.length > 0))
+
+  const hasCustomSearch = search.trim().length > 0 && filteredCategories.length === 0
+
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (search.trim()) {
+      onSelectTopic(search.trim())
+    }
+  }
 
   return (
     <div className="min-h-svh bg-background">
@@ -143,21 +166,57 @@ export function BrowseTopics() {
             What would you like to study?
           </h1>
           <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-            Browse topics or search for something specific
+            Browse topics below or search for anything you want to learn
           </p>
-          <div className="relative mt-5">
+          <form onSubmit={handleSearchSubmit} className="relative mt-5">
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground">
               <SearchIcon />
             </div>
             <Input
               type="text"
-              placeholder="Search topics, subjects, courses..."
+              placeholder="Search anything... biology, cooking, philosophy, anything"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-12 pl-11 text-base"
+              className="h-12 pl-11 pr-24 text-base"
             />
-          </div>
+            {search.trim() && (
+              <Button
+                type="submit"
+                size="sm"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 gap-1.5 text-xs"
+              >
+                Study this
+                <ArrowRightIcon />
+              </Button>
+            )}
+          </form>
         </div>
+
+        {/* Custom search result - when no categories match */}
+        {hasCustomSearch && (
+          <section className="mb-10">
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4">
+                <SearchIcon />
+              </div>
+              <p className="text-base font-medium text-foreground">
+                {'Ready to study "'}
+                <span className="text-primary">{search.trim()}</span>
+                {'"'}
+              </p>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                {"This topic isn't in our catalog yet, but we can generate study materials for it."}
+              </p>
+              <Button
+                className="mt-5 gap-2"
+                onClick={() => onSelectTopic(search.trim())}
+              >
+                Start studying {search.trim()}
+                <ArrowRightIcon />
+              </Button>
+            </div>
+          </section>
+        )}
 
         {/* Trending */}
         {search === "" && (
@@ -175,6 +234,7 @@ export function BrowseTopics() {
                 <button
                   key={topic.name}
                   type="button"
+                  onClick={() => onSelectTopic(topic.name)}
                   className="group flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 transition-all hover:border-primary/40 hover:bg-primary/5"
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -191,52 +251,41 @@ export function BrowseTopics() {
         )}
 
         {/* Categories */}
-        <section>
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground mb-4">
-            {search ? "Search Results" : "Browse by Subject"}
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredCategories.map((cat) => (
-              <Card key={cat.title} className="group hover:border-primary/30 transition-colors">
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      {cat.icon}
+        {filteredCategories.length > 0 && (
+          <section>
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground mb-4">
+              {search ? "Search Results" : "Browse by Subject"}
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredCategories.map((cat) => (
+                <Card key={cat.title} className="group hover:border-primary/30 transition-colors">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        {cat.icon}
+                      </div>
+                      <h3 className="text-sm font-semibold text-foreground">
+                        {cat.title}
+                      </h3>
                     </div>
-                    <h3 className="text-sm font-semibold text-foreground">
-                      {cat.title}
-                    </h3>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {cat.topics.map((topic) => (
-                      <button
-                        key={topic}
-                        type="button"
-                        className="rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
-                      >
-                        {topic}
-                      </button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {filteredCategories.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted mb-4">
-                <SearchIcon />
-              </div>
-              <p className="text-sm font-medium text-foreground">
-                No topics found
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {"Try a different search term"}
-              </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {cat.topics.map((topic) => (
+                        <button
+                          key={topic}
+                          type="button"
+                          onClick={() => onSelectTopic(topic)}
+                          className="rounded-md border border-border bg-background px-2.5 py-1 text-xs font-medium text-foreground transition-all hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+                        >
+                          {topic}
+                        </button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          )}
-        </section>
+          </section>
+        )}
       </div>
     </div>
   )

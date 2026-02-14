@@ -1,18 +1,22 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useState, useRef } from "react"
 import { SplashScreen } from "@/components/splash-screen"
 import { SignInForm } from "@/components/sign-in-form"
-import { StudyPreference } from "@/components/study-preference"
 import { BrowseTopics } from "@/components/browse-topics"
+import { StudyPreference } from "@/components/study-preference"
 
-type AppView = "splash" | "signin" | "preference" | "browse"
+type AppView = "splash" | "signin" | "browse" | "preference"
 
 export default function Page() {
   const [view, setView] = useState<AppView>("splash")
   const [transitioning, setTransitioning] = useState(false)
+  const [selectedTopic, setSelectedTopic] = useState("")
+  const splashDone = useRef(false)
 
   const handleSplashComplete = useCallback(() => {
+    if (splashDone.current) return
+    splashDone.current = true
     setView("signin")
   }, [])
 
@@ -20,16 +24,23 @@ export default function Page() {
     setTransitioning(true)
     setTimeout(() => {
       setView(next)
-      setTransitioning(false)
+      window.scrollTo(0, 0)
+      setTimeout(() => setTransitioning(false), 50)
     }, 400)
   }
 
   function handleSignIn() {
+    transitionTo("browse")
+  }
+
+  function handleSelectTopic(topic: string) {
+    setSelectedTopic(topic)
     transitionTo("preference")
   }
 
-  function handlePreferenceComplete() {
-    transitionTo("browse")
+  function handlePreferenceComplete(preferences: string[]) {
+    // For now just log - this is where you'd navigate to the actual study session
+    console.log("Topic:", selectedTopic, "Preferences:", preferences)
   }
 
   if (view === "splash") {
@@ -78,11 +89,16 @@ export default function Page() {
         </main>
       )}
 
-      {view === "preference" && (
-        <StudyPreference onComplete={handlePreferenceComplete} />
+      {view === "browse" && (
+        <BrowseTopics onSelectTopic={handleSelectTopic} />
       )}
 
-      {view === "browse" && <BrowseTopics />}
+      {view === "preference" && (
+        <StudyPreference
+          topic={selectedTopic}
+          onComplete={handlePreferenceComplete}
+        />
+      )}
     </div>
   )
 }
