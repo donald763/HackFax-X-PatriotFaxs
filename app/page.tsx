@@ -94,7 +94,7 @@ export default function Page() {
       {showTransition && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: '#e8f5e9', transition: 'opacity 0.5s ease' }}>
           <div className="text-center">
-            <h2 className="text-3xl font-medium" style={{ color: '#2e7d32' }}>StudyPilot</h2>
+            <h2 className="text-3xl font-medium" style={{ color: '#2e7d32' }}>Coarsai</h2>
           </div>
         </div>
       )}
@@ -121,7 +121,7 @@ export default function Page() {
                     className="text-lg font-medium leading-relaxed"
                     style={{ color: "#2e7d32cc" }}
                   >
-                    {'"StudyPilot helped me ace my finals. The AI-powered flashcards and practice quizzes are exactly what I needed to stay on track."'}
+                    {'"Coarsai transformed my learning journey. With personalized AI tutoring, I mastered subjects I thought were impossible. The adaptive learning curves to my pace perfectly."'}
                   </p>
                   <footer className="text-sm" style={{ color: "#2e7d3299" }}>
                     <span className="font-medium" style={{ color: "#2e7d32" }}>

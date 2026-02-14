@@ -236,7 +236,7 @@ export function SkillRoadmap({ topic, materials, onBack }: SkillRoadmapProps) {
                 <LeafIcon />
               </div>
               <span className="text-base font-semibold tracking-tight text-foreground">
-                StudyPilot
+                Coarsai
               </span>
             </div>
           </div>

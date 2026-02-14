@@ -43,9 +43,14 @@ export function LandingPage({ onComplete }: LandingPageProps) {
 
         {/* Center content area */}
         <div className="flex-1 flex items-center justify-center px-4 w-full">
-          <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-light text-white drop-shadow-lg">StudyPilot</h1>
-            <p className="mt-4 text-lg text-white/90 drop-shadow-md">Your AI study co‑pilot — sign in to continue</p>
+          <div className="text-center max-w-2xl">
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-white drop-shadow-lg">Coarsai</h1>
+            <p className="mt-6 text-2xl md:text-3xl text-white/95 font-light drop-shadow-md">
+              Your Ultimate AI Tutor
+            </p>
+            <p className="mt-4 text-lg md:text-xl text-white/80 drop-shadow-md max-w-xl mx-auto leading-relaxed">
+              Master anything with intelligent, personalized learning. From mathematics to languages, from science to arts — learn at your own pace with an AI tutor that adapts to you.
+            </p>
           </div>
         </div>
       </div>

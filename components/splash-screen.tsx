@@ -94,7 +94,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             willChange: "opacity, transform",
           }}
         >
-          StudyPilot
+          Coarsai
         </h1>
 
         <p

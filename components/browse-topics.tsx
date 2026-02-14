@@ -150,7 +150,7 @@ export function BrowseTopics({ onSelectTopic }: BrowseTopicsProps) {
               <LeafIcon />
             </div>
             <span className="text-base font-semibold tracking-tight text-foreground">
-              StudyPilot
+              Coarsai
             </span>
           </div>
           <Badge variant="secondary" className="font-normal text-xs">
