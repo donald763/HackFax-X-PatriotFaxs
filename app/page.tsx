@@ -12,8 +12,8 @@ import { SkillRoadmap } from "@/components/skill-roadmap"
 type AppView = "signin" | "browse" | "preference" | "assessment" | "roadmap"
 
 export default function Page() {
-  // Splash screen disabled by default — set to true to skip it
-  const [splashDone, setSplashDone] = useState(true)
+  // Splash screen enabled by default
+  const [splashDone, setSplashDone] = useState(false)
   const [landingDone, setLandingDone] = useState(false)
   const [view, setView] = useState<AppView>("signin")
   const [displayedView, setDisplayedView] = useState<AppView>("signin")
