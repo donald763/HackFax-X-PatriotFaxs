@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 150" fill="none">
+  <!-- Head -->
+  <circle cx="50" cy="50" r="12" stroke="#2e7d32" stroke-width="3"/>
+  <!-- Torso (angled) -->
+  <line x1="60" y1="55" x2="180" y2="70" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+  <!-- Left arm (bent) -->
+  <line x1="70" y1="58" x2="60" y2="95" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+  <line x1="60" y1="95" x2="60" y2="130" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+  <!-- Legs -->
+  <line x1="180" y1="70" x2="250" y2="80" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+  <line x1="250" y1="80" x2="260" y2="130" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+  <!-- Elbow joint -->
+  <circle cx="60" cy="95" r="4" fill="#2e7d32"/>
+  <!-- Label -->
+  <text x="140" y="145" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#666">Push-Up</text>
+</svg>
