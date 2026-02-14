@@ -16,6 +16,7 @@ import { FlashcardView } from "@/components/course/flashcard-view"
 import { QuizView } from "@/components/course/quiz-view"
 import { SummaryView } from "@/components/course/summary-view"
 import { PracticeView } from "@/components/course/practice-view"
+import { LiveDemoView } from "@/components/course/live-demo-view"
 import { ContentLoader } from "@/components/course/content-loader"
 
 // Icons
@@ -70,6 +71,7 @@ const typeColors: Record<string, string> = {
   quiz: "bg-amber-50 text-amber-700",
   summary: "bg-teal-50 text-teal-700",
   practice: "bg-orange-50 text-orange-700",
+  "live-demo": "bg-emerald-50 text-emerald-700",
 }
 
 interface SkillRoadmapProps {
@@ -311,6 +313,8 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
           return <div className="min-h-svh bg-background"><SummaryView data={skill.content.data} {...viewProps} /></div>
         case "practice":
           return <div className="min-h-svh bg-background"><PracticeView data={skill.content.data} {...viewProps} /></div>
+        case "live-demo":
+          return <div className="min-h-svh bg-background"><LiveDemoView data={skill.content.data} topic={topic} {...viewProps} /></div>
         default:
           return <div className="min-h-svh bg-background"><LessonView data={skill.content.data} {...viewProps} /></div>
       }
@@ -554,7 +558,7 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
         <div className="mt-12 flex flex-col items-center gap-3 text-center pb-12">
           <p className="text-sm text-muted-foreground">Click any available skill to start learning</p>
           <div className="flex gap-3">
-            <Link href="/practice">
+            <Link href={`/practice?topic=${encodeURIComponent(topic)}`}>
               <Button variant="outline" className="h-11 px-8 gap-2 font-medium">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>

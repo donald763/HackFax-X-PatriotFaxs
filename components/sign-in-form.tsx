@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -43,21 +44,34 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setIsLoading(true)
-    await new Promise((resolve) => setTimeout(resolve, 600))
+    setError("")
+
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    })
+
     setIsLoading(false)
-    onSignIn()
+
+    if (result?.error) {
+      setError("Invalid email or password")
+    } else if (result?.ok) {
+      onSignIn()
+    }
   }
 
   function handleGuest() {
     onSignIn()
   }
 
-  function handleGoogle() {
-    onSignIn()
+  function handleAuth0() {
+    signIn("auth0", { callbackUrl: "/" })
   }
 
   return (
@@ -83,7 +97,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
         variant="outline"
         className="w-full h-11 gap-3 font-medium"
         type="button"
-        onClick={handleGoogle}
+        onClick={handleAuth0}
       >
         <GoogleIcon />
         Continue with Google
@@ -97,6 +111,11 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {error && (
+          <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 border border-red-200">
+            {error}
+          </div>
+        )}
         <div className="flex flex-col gap-2">
           <Label htmlFor="email" className="text-sm font-medium text-foreground">
             Email

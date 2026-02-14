@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useState, useRef, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { SplashScreen } from "@/components/splash-screen"
 import { SignInForm } from "@/components/sign-in-form"
 import { BrowseTopics } from "@/components/browse-topics"
@@ -11,6 +12,7 @@ import { SkillRoadmap } from "@/components/skill-roadmap"
 type AppView = "signin" | "browse" | "preference" | "assessment" | "roadmap"
 
 export default function Page() {
+  const { data: session, status } = useSession()
   const [splashDone, setSplashDone] = useState(false)
   const [view, setView] = useState<AppView>("signin")
   const [displayedView, setDisplayedView] = useState<AppView>("signin")
@@ -21,12 +23,24 @@ export default function Page() {
   const [resumeCourseId, setResumeCourseId] = useState<string | undefined>()
   const splashFired = useRef(false)
   const transitioning = useRef(false)
+  const sessionChecked = useRef(false)
+
+  // If user is already authenticated, skip signin after splash
+  useEffect(() => {
+    if (sessionChecked.current || !splashDone) return
+    if (status === "loading") return
+    sessionChecked.current = true
+    if (session) {
+      setView("browse")
+      setDisplayedView("browse")
+    }
+  }, [session, status, splashDone])
 
   const handleSplashComplete = useCallback(() => {
     if (splashFired.current) return
     splashFired.current = true
     setSplashDone(true)
-    // Fade in the signin view gently
+    // Fade in the view gently
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         setOpacity(1)
