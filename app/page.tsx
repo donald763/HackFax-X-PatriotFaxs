@@ -18,6 +18,7 @@ export default function Page() {
   const [selectedTopic, setSelectedTopic] = useState("")
   const [proficiency, setProficiency] = useState(0)
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
+  const [resumeCourseId, setResumeCourseId] = useState<string | undefined>()
   const splashFired = useRef(false)
   const transitioning = useRef(false)
 
@@ -66,7 +67,14 @@ export default function Page() {
 
   function handleSelectTopic(topic: string) {
     setSelectedTopic(topic)
+    setResumeCourseId(undefined)
     transitionTo("preference")
+  }
+
+  function handleResumeCourse(courseId: string, topic: string) {
+    setSelectedTopic(topic)
+    setResumeCourseId(courseId)
+    transitionTo("roadmap")
   }
 
   function handlePreferenceComplete(preferences: string[]) {
@@ -132,7 +140,10 @@ export default function Page() {
         )}
 
         {displayedView === "browse" && (
-          <BrowseTopics onSelectTopic={handleSelectTopic} />
+          <BrowseTopics
+            onSelectTopic={handleSelectTopic}
+            onResumeCourse={handleResumeCourse}
+          />
         )}
 
         {displayedView === "preference" && (
@@ -153,6 +164,8 @@ export default function Page() {
           <SkillRoadmap
             topic={selectedTopic}
             materials={selectedMaterials}
+            proficiency={proficiency}
+            courseId={resumeCourseId}
             onBack={handleBackToBrowse}
           />
         )}
