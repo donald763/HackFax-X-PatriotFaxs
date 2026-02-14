@@ -1,8 +1,7 @@
 "use client"
 
 import { useCallback, useState, useRef, useEffect } from "react"
-import { useSession } from "next-auth/react"
-import { SplashScreen } from "@/components/splash-screen"
+import { LandingPage } from "@/components/landing-page"
 import { SignInForm } from "@/components/sign-in-form"
 import { BrowseTopics } from "@/components/browse-topics"
 import { StudyPreference } from "@/components/study-preference"
@@ -12,8 +11,8 @@ import { SkillRoadmap } from "@/components/skill-roadmap"
 type AppView = "signin" | "browse" | "preference" | "assessment" | "roadmap"
 
 export default function Page() {
-  const { data: session, status } = useSession()
-  const [splashDone, setSplashDone] = useState(false)
+  const [landingDone, setLandingDone] = useState(false)
+  const [showTransition, setShowTransition] = useState(false)
   const [view, setView] = useState<AppView>("signin")
   const [displayedView, setDisplayedView] = useState<AppView>("signin")
   const [opacity, setOpacity] = useState(0)
@@ -36,32 +35,29 @@ export default function Page() {
     }
   }, [session, status, splashDone])
 
-  const handleSplashComplete = useCallback(() => {
-    if (splashFired.current) return
-    splashFired.current = true
-    setSplashDone(true)
-    // Fade in the view gently
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setOpacity(1)
-      })
-    })
-  }, [])
+  // Transition overlay lifecycle: when showTransition is true, run a short sequence
+  useEffect(() => {
+    if (!showTransition) return
+    const timers: ReturnType<typeof setTimeout>[] = []
+    // Short hold then reveal sign-in
+    timers.push(setTimeout(() => {
+      /* no-op hold */
+    }, 250))
+    timers.push(setTimeout(() => {
+      setShowTransition(false)
+      requestAnimationFrame(() => requestAnimationFrame(() => setOpacity(1)))
+    }, 700))
+    return () => timers.forEach(clearTimeout)
+  }, [showTransition])
 
   function transitionTo(next: AppView) {
     if (transitioning.current) return
     transitioning.current = true
-
-    // Phase 1: fade out
     setOpacity(0)
-
     const onFadeOut = () => {
-      // Phase 2: swap view while invisible
       setView(next)
       setDisplayedView(next)
       window.scrollTo({ top: 0, behavior: "instant" })
-
-      // Phase 3: fade in
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setOpacity(1)
@@ -71,7 +67,6 @@ export default function Page() {
         })
       })
     }
-
     setTimeout(onFadeOut, 600)
   }
 
@@ -107,7 +102,23 @@ export default function Page() {
 
   return (
     <>
-      {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
+      {!landingDone && (
+        <LandingPage
+          onComplete={() => {
+            setLandingDone(true)
+            // start inline transition overlay then reveal sign-in
+            setShowTransition(true)
+          }}
+        />
+      )}
+
+      {showTransition && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: '#e8f5e9', transition: 'opacity 0.5s ease' }}>
+          <div className="text-center">
+            <h2 className="text-3xl font-medium" style={{ color: '#2e7d32' }}>Coarsai</h2>
+          </div>
+        </div>
+      )}
 
       <div
         style={{
@@ -131,7 +142,7 @@ export default function Page() {
                     className="text-lg font-medium leading-relaxed"
                     style={{ color: "#2e7d32cc" }}
                   >
-                    {'"StudyPilot helped me ace my finals. The AI-powered flashcards and practice quizzes are exactly what I needed to stay on track."'}
+                    {'"Coarsai transformed my learning journey. With personalized AI tutoring, I mastered subjects I thought were impossible. The adaptive learning curves to my pace perfectly."'}
                   </p>
                   <footer className="text-sm" style={{ color: "#2e7d3299" }}>
                     <span className="font-medium" style={{ color: "#2e7d32" }}>
@@ -187,3 +198,4 @@ export default function Page() {
     </>
   )
 }
+
