@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useState, useRef, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { LandingPage } from "@/components/landing-page"
 import { SignInForm } from "@/components/sign-in-form"
 import { BrowseTopics } from "@/components/browse-topics"
@@ -11,6 +12,7 @@ import { SkillRoadmap } from "@/components/skill-roadmap"
 type AppView = "signin" | "browse" | "preference" | "assessment" | "roadmap"
 
 export default function Page() {
+  const { data: session, status } = useSession()
   const [landingDone, setLandingDone] = useState(false)
   const [showTransition, setShowTransition] = useState(false)
   const [view, setView] = useState<AppView>("signin")
@@ -24,16 +26,19 @@ export default function Page() {
   const transitioning = useRef(false)
   const sessionChecked = useRef(false)
 
-  // If user is already authenticated, skip signin after splash
+  // If user is already authenticated, skip landing and signin
   useEffect(() => {
-    if (sessionChecked.current || !splashDone) return
+    if (sessionChecked.current) return
     if (status === "loading") return
     sessionChecked.current = true
     if (session) {
+      setLandingDone(true)
+      setShowTransition(false)
       setView("browse")
       setDisplayedView("browse")
+      setOpacity(1)
     }
-  }, [session, status, splashDone])
+  }, [session, status])
 
   // Transition overlay lifecycle: when showTransition is true, run a short sequence
   useEffect(() => {
@@ -102,7 +107,7 @@ export default function Page() {
 
   return (
     <>
-      {!landingDone && (
+      {!landingDone && status !== "authenticated" && (
         <LandingPage
           onComplete={() => {
             setLandingDone(true)
@@ -127,7 +132,7 @@ export default function Page() {
           willChange: "opacity",
         }}
       >
-        {displayedView === "signin" && (
+        {displayedView === "signin" && status !== "authenticated" && (
           <main className="flex min-h-svh">
             <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 bg-card">
               <SignInForm onSignIn={handleSignIn} />
