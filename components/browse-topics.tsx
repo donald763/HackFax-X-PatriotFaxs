@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import { useSession, signOut } from "next-auth/react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -119,12 +120,77 @@ function LeafIcon() {
   )
 }
 
+function ProfileDropdown({ session }: { session: any }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 rounded-full border border-border bg-card pl-1 pr-3 py-1 transition-colors hover:bg-accent"
+      >
+        {session.user.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={session.user.image}
+            alt=""
+            className="h-6 w-6 rounded-full"
+          />
+        ) : (
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+            {(session.user.name ?? session.user.email ?? "U").charAt(0).toUpperCase()}
+          </div>
+        )}
+        <span className="text-xs font-medium text-foreground">
+          {session.user.name ?? session.user.email ?? "User"}
+        </span>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-2 w-52 rounded-lg border border-border bg-card shadow-lg py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="px-3 py-2.5 border-b border-border">
+            <p className="text-sm font-medium text-foreground truncate">
+              {session.user.name ?? "User"}
+            </p>
+            {session.user.email && (
+              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                {session.user.email}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={() => signOut()}
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Log out
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface BrowseTopicsProps {
   onSelectTopic: (topic: string) => void
   onResumeCourse?: (courseId: string, topic: string) => void
 }
 
 export function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTopicsProps) {
+  const { data: session } = useSession()
   const [search, setSearch] = useState("")
   const [savedCourses, setSavedCourses] = useState<SavedCourse[]>([])
 
@@ -163,12 +229,16 @@ export function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTopicsProp
               <LeafIcon />
             </div>
             <span className="text-base font-semibold tracking-tight text-foreground">
-              StudyPilot
+              Coarsai
             </span>
           </div>
-          <Badge variant="secondary" className="font-normal text-xs">
-            Guest
-          </Badge>
+          {session?.user ? (
+            <ProfileDropdown session={session} />
+          ) : (
+            <Badge variant="secondary" className="font-normal text-xs">
+              Guest
+            </Badge>
+          )}
         </div>
       </header>
 
