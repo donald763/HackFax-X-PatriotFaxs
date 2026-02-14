@@ -5,39 +5,41 @@ import { SplashScreen } from "@/components/splash-screen"
 import { SignInForm } from "@/components/sign-in-form"
 
 export default function Page() {
-  const [showSplash, setShowSplash] = useState(true)
+  const [splashDone, setSplashDone] = useState(false)
 
   const handleSplashComplete = useCallback(() => {
-    setShowSplash(false)
+    setSplashDone(true)
   }, [])
 
   return (
     <>
-      {/* Splash overlay - fixed, locks scroll, slides up when done */}
-      {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+      <SplashScreen onComplete={handleSplashComplete} />
 
-      {/* Sign In Section - always rendered underneath */}
-      <main className="flex min-h-svh">
-        <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+      {/* Sign-in section fades in after splash */}
+      <main
+        className="flex min-h-svh transition-opacity duration-700 ease-out"
+        style={{ opacity: splashDone ? 1 : 0 }}
+      >
+        <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 bg-card">
           <SignInForm />
         </div>
-        <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-center lg:bg-accent lg:relative lg:overflow-hidden">
+        <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-center lg:relative lg:overflow-hidden" style={{ backgroundColor: "#e8f5e9" }}>
           <div className="relative z-10 max-w-md px-8">
             <blockquote className="space-y-4">
-              <p className="text-lg font-medium leading-relaxed text-accent-foreground/80">
-                {'"This platform has completely transformed the way we manage our projects. The simplicity and power combined is unmatched."'}
+              <p className="text-lg font-medium leading-relaxed" style={{ color: "#2e7d32cc" }}>
+                {'"StudyPilot helped me ace my finals. The AI-powered flashcards and practice quizzes are exactly what I needed to stay on track."'}
               </p>
-              <footer className="text-sm text-accent-foreground/60">
-                <span className="font-medium text-accent-foreground">Sofia Rodriguez</span>
-                {" \u2014 Head of Product, Horizon Labs"}
+              <footer className="text-sm" style={{ color: "#2e7d3299" }}>
+                <span className="font-medium" style={{ color: "#2e7d32" }}>Alex Chen</span>
+                {" -- Computer Science, Stanford"}
               </footer>
             </blockquote>
           </div>
           <div
-            className="absolute inset-0 opacity-[0.03]"
+            className="absolute inset-0 opacity-[0.04]"
             style={{
               backgroundImage:
-                "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
+                "radial-gradient(circle at 1px 1px, #2e7d32 1px, transparent 0)",
               backgroundSize: "32px 32px",
             }}
           />

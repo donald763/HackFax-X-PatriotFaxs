@@ -7,93 +7,93 @@ interface SplashScreenProps {
 }
 
 export function SplashScreen({ onComplete }: SplashScreenProps) {
-  const [phase, setPhase] = useState<"hidden" | "faint" | "bold" | "fade" | "done">("hidden")
+  const [phase, setPhase] = useState<"hidden" | "faint" | "bold" | "fade" | "exit" | "done">("hidden")
 
   useEffect(() => {
-    // Lock scroll immediately
     document.body.style.overflow = "hidden"
 
-    // Small delay before starting so the user sees the green screen first
-    const startTimer = setTimeout(() => setPhase("faint"), 300)
-
-    // Phase 2: After 1.3s, text goes bold
-    const boldTimer = setTimeout(() => setPhase("bold"), 1300)
-
-    // Phase 3: After 3.5s total, start fading out
-    const fadeTimer = setTimeout(() => setPhase("fade"), 3500)
-
-    // Phase 4: After 5s total, done - slide the overlay away
-    const doneTimer = setTimeout(() => {
-      setPhase("done")
-    }, 5000)
-
-    // Phase 5: After overlay slides up, unlock scroll and notify parent
-    const completeTimer = setTimeout(() => {
-      document.body.style.overflow = ""
-      onComplete()
-    }, 5800)
+    const timers = [
+      setTimeout(() => setPhase("faint"), 400),
+      setTimeout(() => setPhase("bold"), 1600),
+      setTimeout(() => setPhase("fade"), 3800),
+      setTimeout(() => setPhase("exit"), 5200),
+      setTimeout(() => {
+        setPhase("done")
+        document.body.style.overflow = ""
+        onComplete()
+      }, 6200),
+    ]
 
     return () => {
-      clearTimeout(startTimer)
-      clearTimeout(boldTimer)
-      clearTimeout(fadeTimer)
-      clearTimeout(doneTimer)
-      clearTimeout(completeTimer)
+      timers.forEach(clearTimeout)
       document.body.style.overflow = ""
     }
   }, [onComplete])
 
+  if (phase === "done") return null
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center transition-transform duration-[800ms] ease-in-out"
+      className="fixed inset-0 z-50 flex items-center justify-center"
       style={{
         backgroundColor: "#e8f5e9",
-        transform: phase === "done" ? "translateY(-100%)" : "translateY(0)",
+        opacity: phase === "exit" ? 0 : 1,
+        transform: phase === "exit" ? "scale(1.05)" : "scale(1)",
+        transition: "opacity 1s ease-in-out, transform 1s ease-in-out",
+        pointerEvents: phase === "exit" ? "none" : "auto",
       }}
       aria-live="polite"
     >
-      {/* Subtle radial glow */}
+      {/* Soft radial glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(76,175,80,0.1) 0%, transparent 65%)",
+            "radial-gradient(ellipse 60% 50% at center, rgba(76,175,80,0.12) 0%, transparent 70%)",
         }}
       />
 
-      <div className="relative flex flex-col items-center gap-8 px-6">
+      <div className="relative flex flex-col items-center gap-6 px-6">
+        {/* Main text */}
         <h1
           className="text-4xl md:text-6xl lg:text-7xl tracking-tight text-center select-none"
           style={{
             color: "#2e7d32",
-            transition: "opacity 1s ease, transform 1s ease, font-weight 0.6s ease",
+            transition:
+              phase === "fade"
+                ? "opacity 1.2s ease-in-out, transform 1.2s ease-in-out, font-weight 0.5s ease"
+                : "opacity 1s ease-out, transform 1s ease-out, font-weight 0.5s ease",
             opacity:
-              phase === "hidden"
-                ? 0
-                : phase === "faint"
-                  ? 0.15
-                  : phase === "bold"
-                    ? 1
-                    : phase === "fade"
-                      ? 0
-                      : 0,
+              phase === "hidden" ? 0
+              : phase === "faint" ? 0.18
+              : phase === "bold" ? 1
+              : 0,
             transform:
-              phase === "hidden"
-                ? "scale(0.95) translateY(8px)"
-                : phase === "faint"
-                  ? "scale(0.98) translateY(0)"
-                  : phase === "bold"
-                    ? "scale(1) translateY(0)"
-                    : "scale(1.01) translateY(-4px)",
-            fontWeight: phase === "bold" ? 700 : 400,
+              phase === "hidden" ? "translateY(12px) scale(0.96)"
+              : phase === "faint" ? "translateY(0) scale(0.98)"
+              : phase === "bold" ? "translateY(0) scale(1)"
+              : "translateY(-8px) scale(1.01)",
+            fontWeight: phase === "bold" ? 700 : 300,
           }}
         >
           Your AI Study Co-Pilot
         </h1>
 
-        {/* Subtle loading dots visible during bold phase */}
+        {/* Subtle tagline */}
+        <p
+          className="text-base md:text-lg text-center tracking-wide"
+          style={{
+            color: "#66bb6a",
+            transition: "opacity 0.8s ease-out 0.3s",
+            opacity: phase === "bold" ? 0.7 : 0,
+          }}
+        >
+          Learn smarter, not harder
+        </p>
+
+        {/* Loading dots */}
         <div
-          className="flex gap-2"
+          className="flex gap-2 mt-2"
           style={{
             transition: "opacity 0.6s ease",
             opacity: phase === "bold" ? 1 : 0,
