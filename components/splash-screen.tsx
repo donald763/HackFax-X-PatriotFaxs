@@ -53,17 +53,10 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
   const textWeight = phase === "bold" ? 700 : 300
 
-  const textY =
-    phase === "hidden" ? "16px"
-    : phase === "faint" ? "0px"
-    : phase === "bold" ? "0px"
-    : "-6px"
-
   const textScale =
-    phase === "hidden" ? 0.95
-    : phase === "faint" ? 0.98
+    phase === "hidden" ? 0.97
     : phase === "bold" ? 1
-    : 1.02
+    : 0.99
 
   const overlayOpacity = phase === "exit" ? 0 : 1
 
@@ -97,7 +90,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
                 ? "opacity 1.2s ease-in-out, transform 1.2s ease-in-out, font-weight 0.4s ease"
                 : "opacity 0.8s ease-out, transform 0.8s ease-out, font-weight 0.4s ease",
             opacity: textOpacity,
-            transform: `translateY(${textY}) scale(${textScale})`,
+            transform: `scale(${textScale})`,
             fontWeight: textWeight,
           }}
         >

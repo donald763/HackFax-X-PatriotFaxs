@@ -475,7 +475,7 @@ export function ProficiencyAssessment({ topic, onComplete }: ProficiencyAssessme
               className="w-full h-11 gap-2 font-medium"
               onClick={() => onComplete(proficiency)}
             >
-              Continue to study materials
+              Continue to roadmap
               <ArrowRightIcon />
             </Button>
           </div>

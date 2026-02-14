@@ -4,63 +4,60 @@ import { useCallback, useState, useRef, useEffect } from "react"
 import { SplashScreen } from "@/components/splash-screen"
 import { SignInForm } from "@/components/sign-in-form"
 import { BrowseTopics } from "@/components/browse-topics"
-import { ProficiencyAssessment } from "@/components/proficiency-assessment"
 import { StudyPreference } from "@/components/study-preference"
+import { ProficiencyAssessment } from "@/components/proficiency-assessment"
 import { SkillRoadmap } from "@/components/skill-roadmap"
 
-type AppView = "signin" | "browse" | "assessment" | "preference" | "roadmap"
+type AppView = "signin" | "browse" | "preference" | "assessment" | "roadmap"
 
 export default function Page() {
   const [splashDone, setSplashDone] = useState(false)
   const [view, setView] = useState<AppView>("signin")
   const [displayedView, setDisplayedView] = useState<AppView>("signin")
-  const [contentOpacity, setContentOpacity] = useState(0)
-  const [contentTranslate, setContentTranslate] = useState(20)
+  const [opacity, setOpacity] = useState(0)
   const [selectedTopic, setSelectedTopic] = useState("")
   const [proficiency, setProficiency] = useState(0)
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
   const splashFired = useRef(false)
-  const isTransitioning = useRef(false)
+  const transitioning = useRef(false)
 
   const handleSplashComplete = useCallback(() => {
     if (splashFired.current) return
     splashFired.current = true
     setSplashDone(true)
+    // Fade in the signin view gently
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        setContentOpacity(1)
-        setContentTranslate(0)
+        setOpacity(1)
       })
     })
   }, [])
 
   function transitionTo(next: AppView) {
-    if (isTransitioning.current) return
-    isTransitioning.current = true
+    if (transitioning.current) return
+    transitioning.current = true
 
-    // Phase 1: fade out + slide up current view
-    setContentOpacity(0)
-    setContentTranslate(-12)
+    // Phase 1: fade out
+    setOpacity(0)
 
-    setTimeout(() => {
+    const onFadeOut = () => {
+      // Phase 2: swap view while invisible
       setView(next)
       setDisplayedView(next)
       window.scrollTo({ top: 0, behavior: "instant" })
 
-      // Reset to below position before fading in
-      setContentTranslate(20)
-
-      // Phase 2: fade in + slide up new view
+      // Phase 3: fade in
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          setContentOpacity(1)
-          setContentTranslate(0)
+          setOpacity(1)
           setTimeout(() => {
-            isTransitioning.current = false
-          }, 550)
+            transitioning.current = false
+          }, 700)
         })
       })
-    }, 500)
+    }
+
+    setTimeout(onFadeOut, 600)
   }
 
   function handleSignIn() {
@@ -69,16 +66,16 @@ export default function Page() {
 
   function handleSelectTopic(topic: string) {
     setSelectedTopic(topic)
-    transitionTo("assessment")
-  }
-
-  function handleAssessmentComplete(level: number) {
-    setProficiency(level)
     transitionTo("preference")
   }
 
   function handlePreferenceComplete(preferences: string[]) {
     setSelectedMaterials(preferences)
+    transitionTo("assessment")
+  }
+
+  function handleAssessmentComplete(level: number) {
+    setProficiency(level)
     transitionTo("roadmap")
   }
 
@@ -92,10 +89,9 @@ export default function Page() {
 
       <div
         style={{
-          opacity: contentOpacity,
-          transform: `translateY(${contentTranslate}px)`,
-          transition: "opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)",
-          willChange: "opacity, transform",
+          opacity,
+          transition: "opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1)",
+          willChange: "opacity",
         }}
       >
         {displayedView === "signin" && (
@@ -139,17 +135,17 @@ export default function Page() {
           <BrowseTopics onSelectTopic={handleSelectTopic} />
         )}
 
-        {displayedView === "assessment" && (
-          <ProficiencyAssessment
-            topic={selectedTopic}
-            onComplete={handleAssessmentComplete}
-          />
-        )}
-
         {displayedView === "preference" && (
           <StudyPreference
             topic={selectedTopic}
             onComplete={handlePreferenceComplete}
+          />
+        )}
+
+        {displayedView === "assessment" && (
+          <ProficiencyAssessment
+            topic={selectedTopic}
+            onComplete={handleAssessmentComplete}
           />
         )}
 
