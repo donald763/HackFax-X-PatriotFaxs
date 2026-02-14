@@ -86,6 +86,15 @@ export default function Page() {
     transitionTo("browse")
   }
 
+  // Reveal sign-in view immediately when landing is done and splash is skipped
+  useEffect(() => {
+    if (landingDone && splashDone) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setOpacity(1))
+      })
+    }
+  }, [landingDone, splashDone])
+
   return (
     <>
       {!landingDone && <LandingPage onComplete={() => setLandingDone(true)} />}
