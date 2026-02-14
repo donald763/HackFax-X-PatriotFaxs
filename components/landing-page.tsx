@@ -123,8 +123,21 @@ export function LandingPage({ onComplete }: LandingPageProps) {
       </div>
 
       {/* Mission Statement Section */}
-      <div className="relative z-20 bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 px-4 py-16 border-t-4 border-amber-600">
-        <div className="max-w-4xl mx-auto text-center">
+      <div className="relative z-20 bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 px-4 py-16 border-t-4 border-amber-600 overflow-hidden">
+        {/* Background image with sides visible and center fade */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "url('/library-background.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            mask: "radial-gradient(ellipse 40% 100% at center, transparent 0%, transparent 30%, black 70%)",
+            WebkitMask: "radial-gradient(ellipse 40% 100% at center, transparent 0%, transparent 30%, black 70%)",
+            opacity: 0.25,
+          }}
+        />
+        
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-amber-50 mb-6">Our Mission</h2>
           <p className="text-lg md:text-xl text-emerald-50 leading-relaxed mb-8">
             We believe that education should be <span className="font-semibold text-amber-100">personalized, accessible, and transformative</span>. At Coarsai, our mission is to democratize world-class learning by providing an AI tutor that adapts to every learner.
@@ -146,9 +159,21 @@ export function LandingPage({ onComplete }: LandingPageProps) {
         </div>
       </div>
 
-      {/* FAQ Section */}
-      <div className="relative z-20 bg-gradient-to-b from-emerald-900 via-stone-850 to-amber-900/20 px-4 py-16 min-h-screen flex items-center justify-center">
-        <div className="w-full max-w-3xl">
+      {/* FAQ Section with background image sides visible */}
+      <div className="relative z-20 bg-gradient-to-b from-emerald-900 via-stone-850 to-amber-900/20 px-4 py-16 min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background image with sides visible and center fade */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "url('/library-background.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            mask: "radial-gradient(ellipse 45% 100% at center, transparent 0%, transparent 25%, black 65%)",
+            WebkitMask: "radial-gradient(ellipse 45% 100% at center, transparent 0%, transparent 25%, black 65%)",
+            opacity: 0.2,
+          }}
+        />
+        <div className="relative z-10 w-full max-w-3xl">
           <h2 className="text-4xl md:text-5xl font-bold text-amber-50 text-center mb-14">Frequently Asked Questions</h2>
           
           <div className="space-y-4">
@@ -206,20 +231,6 @@ export function LandingPage({ onComplete }: LandingPageProps) {
                 Yes! Coarsai is completely self-paced. Learn whenever you want, for as long as you want. There are no deadlines—just your AI tutor ready to help you succeed on your timeline.
               </div>
             </details>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Image Section - ready for image with orange transition */}
-      <div className="relative z-10 w-full bg-gradient-to-b from-amber-900/40 via-amber-800/30 to-amber-700/50 px-0 py-12 flex items-center justify-center" style={{ height: "400px" }}>
-        {/* Image container with visible sides - ready for your image */}
-        <div className="w-full h-full max-w-6xl mx-auto px-8 md:px-12 flex items-center justify-center">
-          <div className="w-full h-full bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 rounded-lg shadow-2xl border border-emerald-700/40 flex items-center justify-center">
-            {/* Placeholder for image - will transition to orange tones */}
-            <div className="text-center">
-              <p className="text-amber-50/60 text-lg font-light">Image Section - Your photo will appear here</p>
-              <p className="text-amber-50/40 text-sm mt-2">Sides visible on desktop • Center transitions to warm orange</p>
-            </div>
           </div>
         </div>
       </div>
