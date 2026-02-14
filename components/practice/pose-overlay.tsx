@@ -22,10 +22,10 @@ const POSE_CONNECTIONS: [number, number][] = [
 ]
 
 const feedbackColors: Record<FeedbackLevel, string> = {
-  good: "#2e7d32",
-  fair: "#f9a825",
-  poor: "#c62828",
-  none: "#ffffff",
+  good: "#22c55e",
+  fair: "#eab308",
+  poor: "#ef4444",
+  none: "rgba(255, 255, 255, 0.8)",
 }
 
 export function drawPoseOnCanvas(
@@ -36,17 +36,48 @@ export function drawPoseOnCanvas(
   jointFeedback?: Map<string, FeedbackLevel>,
   landmarkToJointName?: Map<number, string>
 ) {
-  // Draw connections
-  ctx.lineWidth = 3
+  // Draw connections with glow
   for (const [a, b] of POSE_CONNECTIONS) {
     const la = landmarks[a]
     const lb = landmarks[b]
     if (la.visibility < 0.5 || lb.visibility < 0.5) continue
 
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)"
+    const ax = la.x * width
+    const ay = la.y * height
+    const bx = lb.x * width
+    const by = lb.y * height
+
+    // Determine connection color based on connected joints
+    let connectionColor = "rgba(255, 255, 255, 0.4)"
+    if (jointFeedback && landmarkToJointName) {
+      const jointA = landmarkToJointName.get(a)
+      const jointB = landmarkToJointName.get(b)
+      const levelA = jointA ? jointFeedback.get(jointA) : undefined
+      const levelB = jointB ? jointFeedback.get(jointB) : undefined
+      const level = levelA ?? levelB
+      if (level) {
+        connectionColor = feedbackColors[level] + "80" // 50% alpha
+      }
+    }
+
+    // Glow layer
+    ctx.shadowColor = connectionColor
+    ctx.shadowBlur = 8
+    ctx.strokeStyle = connectionColor
+    ctx.lineWidth = 4
+    ctx.lineCap = "round"
     ctx.beginPath()
-    ctx.moveTo(la.x * width, la.y * height)
-    ctx.lineTo(lb.x * width, lb.y * height)
+    ctx.moveTo(ax, ay)
+    ctx.lineTo(bx, by)
+    ctx.stroke()
+
+    // Crisp layer
+    ctx.shadowBlur = 0
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)"
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(ax, ay)
+    ctx.lineTo(bx, by)
     ctx.stroke()
   }
 
@@ -55,22 +86,45 @@ export function drawPoseOnCanvas(
     const lm = landmarks[i]
     if (lm.visibility < 0.5) continue
 
-    let color = "#ffffff"
+    const x = lm.x * width
+    const y = lm.y * height
+
+    let color = "rgba(255, 255, 255, 0.8)"
+    let isJoint = false
     if (jointFeedback && landmarkToJointName) {
       const jointName = landmarkToJointName.get(i)
       if (jointName) {
         const level = jointFeedback.get(jointName)
-        if (level) color = feedbackColors[level]
+        if (level) {
+          color = feedbackColors[level]
+          isJoint = true
+        }
       }
     }
 
+    const radius = isJoint ? 8 : 4
+
+    // Glow for joints
+    if (isJoint) {
+      ctx.shadowColor = color
+      ctx.shadowBlur = 16
+      ctx.fillStyle = color
+      ctx.beginPath()
+      ctx.arc(x, y, radius + 2, 0, 2 * Math.PI)
+      ctx.fill()
+      ctx.shadowBlur = 0
+    }
+
+    // Outer ring
     ctx.fillStyle = color
     ctx.beginPath()
-    ctx.arc(lm.x * width, lm.y * height, 5, 0, 2 * Math.PI)
+    ctx.arc(x, y, radius, 0, 2 * Math.PI)
     ctx.fill()
 
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.4)"
-    ctx.lineWidth = 1.5
-    ctx.stroke()
+    // Inner dot
+    ctx.fillStyle = isJoint ? "white" : "rgba(255,255,255,0.9)"
+    ctx.beginPath()
+    ctx.arc(x, y, radius * 0.45, 0, 2 * Math.PI)
+    ctx.fill()
   }
 }

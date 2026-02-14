@@ -22,6 +22,18 @@ export default function Page() {
   const [resumeCourseId, setResumeCourseId] = useState<string | undefined>()
   const splashFired = useRef(false)
   const transitioning = useRef(false)
+  const sessionChecked = useRef(false)
+
+  // If user is already authenticated, skip signin after splash
+  useEffect(() => {
+    if (sessionChecked.current || !splashDone) return
+    if (status === "loading") return
+    sessionChecked.current = true
+    if (session) {
+      setView("browse")
+      setDisplayedView("browse")
+    }
+  }, [session, status, splashDone])
 
   // Transition overlay lifecycle: when showTransition is true, run a short sequence
   useEffect(() => {
