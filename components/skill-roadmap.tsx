@@ -17,6 +17,8 @@ import { QuizView } from "@/components/course/quiz-view"
 import { SummaryView } from "@/components/course/summary-view"
 import { PracticeView } from "@/components/course/practice-view"
 import { ContentLoader } from "@/components/course/content-loader"
+import { PatriotAIChatbot } from "@/components/patriot-ai-chatbot"
+import { TutorCalendar } from "@/components/tutor-calendar"
 
 // Icons
 function CheckIcon() {
@@ -294,7 +296,10 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
 
   // Active content view
   if (activeSkill && course) {
-    const skill = course.levels[activeSkill.levelIdx].skills[activeSkill.skillIdx]
+    const skill = course.levels[activeSkill.levelIdx]?.skills[activeSkill.skillIdx]
+    if (!skill) {
+      return null
+    }
     const viewProps = {
       onBack: () => setActiveSkill(null),
       onComplete: handleContentComplete,
@@ -302,24 +307,37 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
 
     // If content is pre-generated, use it directly
     if (skill.content?.data) {
-      switch (skill.type) {
-        case "flashcards":
-          return <div className="min-h-svh bg-background"><FlashcardView data={skill.content.data} {...viewProps} /></div>
-        case "quiz":
-          return <div className="min-h-svh bg-background"><QuizView data={skill.content.data} {...viewProps} /></div>
-        case "summary":
-          return <div className="min-h-svh bg-background"><SummaryView data={skill.content.data} {...viewProps} /></div>
-        case "practice":
-          return <div className="min-h-svh bg-background"><PracticeView data={skill.content.data} {...viewProps} /></div>
-        default:
-          return <div className="min-h-svh bg-background"><LessonView data={skill.content.data} {...viewProps} /></div>
-      }
+      const courseContent = (
+        <>
+          {skill.type === "flashcards" && <FlashcardView data={skill.content.data} {...viewProps} />}
+          {skill.type === "quiz" && <QuizView data={skill.content.data} {...viewProps} />}
+          {skill.type === "summary" && <SummaryView data={skill.content.data} {...viewProps} />}
+          {skill.type === "practice" && <PracticeView data={skill.content.data} {...viewProps} />}
+          {!["flashcards", "quiz", "summary", "practice"].includes(skill.type) && <LessonView data={skill.content.data} {...viewProps} />}
+        </>
+      )
+      
+      return (
+        <div className="flex min-h-svh bg-background">
+          <div className="flex-1 overflow-auto">
+            <div className="min-h-svh bg-background">
+              {courseContent}
+            </div>
+          </div>
+          <PatriotAIChatbot variant="sidebar" />
+        </div>
+      )
     }
 
     // Fallback: generate on-demand
     return (
-      <div className="min-h-svh bg-background">
-        <ContentLoader topic={topic} skillName={skill.name} type={skill.type} {...viewProps} />
+      <div className="flex min-h-svh bg-background">
+        <div className="flex-1 overflow-auto">
+          <div className="min-h-svh bg-background">
+            <ContentLoader topic={topic} skillName={skill.name} type={skill.type} {...viewProps} />
+          </div>
+        </div>
+        <PatriotAIChatbot variant="sidebar" />
       </div>
     )
   }
@@ -566,6 +584,10 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
           </div>
         </div>
       </div>
+
+      {/* PatriotAI Chatbot - Modal variant on roadmap page */}
+      <PatriotAIChatbot variant="modal" />
+      <TutorCalendar />
     </div>
   )
 }
