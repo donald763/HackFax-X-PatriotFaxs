@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
+import { useState, useRef } from "react"
+import { toast } from "sonner"
+import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -81,15 +82,6 @@ const CATEGORIES = [
   },
 ]
 
-function SearchIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  )
-}
-
 function TrendingIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -122,22 +114,32 @@ interface BrowseTopicsProps {
 }
 
 export function BrowseTopics({ onSelectTopic }: BrowseTopicsProps) {
-  const [search, setSearch] = useState("")
+  const [prompt, setPrompt] = useState("")
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [aiResponse, setAiResponse] = useState<string | null>(null)
+  const [lastUpload, setLastUpload] = useState<{ name: string; hasContent: boolean; chars?: number } | null>(null)
 
-  const filteredCategories = CATEGORIES.map((cat) => ({
-    ...cat,
-    topics: cat.topics.filter((t) =>
-      t.toLowerCase().includes(search.toLowerCase())
-    ),
-  })).filter((cat) => (search === "" ? true : cat.topics.length > 0))
+  // AI prompt bar is independent; always show full topic list (no filtering)
+  const filteredCategories = CATEGORIES
 
-  const hasCustomSearch = search.trim().length > 0 && filteredCategories.length === 0
-
-  function handleSearchSubmit(e: React.FormEvent) {
+  function handlePromptSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (search.trim()) {
-      onSelectTopic(search.trim())
-    }
+    if (!prompt.trim()) return
+    ;(async () => {
+      try {
+        const res = await fetch('/api/ai', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: prompt.trim() }),
+        })
+        const data = await res.json()
+        setAiResponse(data?.answer ?? 'No response')
+      } catch (err) {
+        console.error(err)
+        setAiResponse('Error contacting AI')
+      }
+    })()
   }
 
   return (
@@ -166,60 +168,112 @@ export function BrowseTopics({ onSelectTopic }: BrowseTopicsProps) {
             What would you like to study?
           </h1>
           <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-            Browse topics below or search for anything you want to learn
+            Ask the AI anything, or browse topics below to get started
           </p>
-          <form onSubmit={handleSearchSubmit} className="relative mt-5">
-            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground">
-              <SearchIcon />
-            </div>
-            <Input
-              type="text"
-              placeholder="Search anything... biology, cooking, philosophy, anything"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-12 pl-11 pr-24 text-base"
+          <form onSubmit={handlePromptSubmit} className="relative mt-5">
+            <Textarea
+              placeholder="Ask the AI anything..."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="min-h-[80px] pl-12 pr-32 text-base resize-none"
             />
-            {search.trim() && (
+            {/* hidden file input used by the plus button */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={async (e) => {
+                const files = e.target.files
+                if (!files || files.length === 0) return
+                setUploading(true)
+                const form = new FormData()
+                Array.from(files).forEach((f) => form.append('files', f))
+                try {
+                  const res = await fetch('/api/upload', { method: 'POST', body: form })
+                  const json = await res.json()
+                  if (!res.ok || !json.ok) {
+                    toast.error('Upload failed', { description: json?.error || 'Could not upload file' })
+                    return
+                  }
+                  const uploadedArr = json.files ? Object.values(json.files).flat() : []
+                  if (uploadedArr.length > 0) {
+                    const first = uploadedArr[0] as { originalFilename?: string; filename?: string; text?: string }
+                    const name = (first.originalFilename || first.filename || 'file').toString()
+                    const extractedText = first.text && first.text.toString().trim().length > 0 ? first.text.toString() : null
+                    if (extractedText) {
+                      setPrompt(extractedText)
+                      setLastUpload({ name, hasContent: true, chars: extractedText.length })
+                      toast.success('File uploaded', { description: `${name} — content loaded (${extractedText.length.toLocaleString()} characters)` })
+                    } else {
+                      const topic = name.replace(/\.[^/.]+$/, '') || name
+                      setPrompt(topic)
+                      setLastUpload({ name, hasContent: false })
+                      toast.success('File uploaded', { description: `${name} — only filename used (no text could be extracted from this file type)` })
+                    }
+                  }
+                } catch (err) {
+                  console.error(err)
+                  toast.error('Upload failed', { description: 'Network or server error' })
+                } finally {
+                  setUploading(false)
+                  // reset input
+                  if (fileInputRef.current) fileInputRef.current.value = ''
+                }
+              }}
+              className="hidden"
+            />
+
+            {/* Plus button to open file picker (leftmost) */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute left-3 top-3 h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              aria-label="Attach files"
+              disabled={uploading}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+
+            {prompt.trim() && (
               <Button
                 type="submit"
                 size="sm"
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 gap-1.5 text-xs"
+                className="absolute right-2 top-3 h-8 gap-1.5 text-xs"
               >
-                Study this
+                Ask AI
                 <ArrowRightIcon />
               </Button>
             )}
           </form>
+          {lastUpload && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Uploaded: <span className="font-medium text-foreground">{lastUpload.name}</span>
+              {lastUpload.hasContent && lastUpload.chars != null
+                ? ` — content loaded (${lastUpload.chars.toLocaleString()} characters)`
+                : ' — filename only (no text extracted)'}
+            </p>
+          )}
         </div>
 
-        {/* Custom search result - when no categories match */}
-        {hasCustomSearch && (
-          <section className="mb-10">
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-4">
-                <SearchIcon />
+        {/* AI response area */}
+        {aiResponse && (
+          <section className="mb-6">
+            <div className="rounded-lg border bg-card p-4">
+              <h3 className="text-sm font-medium">AI Response</h3>
+              <p className="mt-2 text-sm text-foreground whitespace-pre-wrap">{aiResponse}</p>
+              <div className="mt-3 flex gap-2">
+                <Button onClick={() => { setAiResponse(null); onSelectTopic(prompt.trim()) }}>Continue</Button>
+                <Button variant="ghost" onClick={() => setAiResponse(null)}>Close</Button>
               </div>
-              <p className="text-base font-medium text-foreground">
-                {'Ready to study "'}
-                <span className="text-primary">{search.trim()}</span>
-                {'"'}
-              </p>
-              <p className="mt-1.5 text-sm text-muted-foreground">
-                {"This topic isn't in our catalog yet, but we can generate study materials for it."}
-              </p>
-              <Button
-                className="mt-5 gap-2"
-                onClick={() => onSelectTopic(search.trim())}
-              >
-                Start studying {search.trim()}
-                <ArrowRightIcon />
-              </Button>
             </div>
           </section>
         )}
 
         {/* Trending */}
-        {search === "" && (
+        {prompt === "" && (
           <section className="mb-10">
             <div className="flex items-center gap-2 mb-4">
               <div className="text-primary">
@@ -250,12 +304,11 @@ export function BrowseTopics({ onSelectTopic }: BrowseTopicsProps) {
           </section>
         )}
 
-        {/* Categories */}
-        {filteredCategories.length > 0 && (
-          <section>
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground mb-4">
-              {search ? "Search Results" : "Browse by Subject"}
-            </h2>
+        {/* Categories - always show full list; AI bar does not filter */}
+        <section>
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground mb-4">
+            Browse by Subject
+          </h2>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredCategories.map((cat) => (
                 <Card key={cat.title} className="group hover:border-primary/30 transition-colors">
@@ -284,8 +337,7 @@ export function BrowseTopics({ onSelectTopic }: BrowseTopicsProps) {
                 </Card>
               ))}
             </div>
-          </section>
-        )}
+        </section>
       </div>
     </div>
   )
