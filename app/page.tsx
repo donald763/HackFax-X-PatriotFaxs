@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useState, useRef, useEffect } from "react"
-import { SplashScreen } from "@/components/splash-screen"
 import { LandingPage } from "@/components/landing-page"
 import { SignInForm } from "@/components/sign-in-form"
 import { BrowseTopics } from "@/components/browse-topics"
@@ -12,44 +11,39 @@ import { SkillRoadmap } from "@/components/skill-roadmap"
 type AppView = "signin" | "browse" | "preference" | "assessment" | "roadmap"
 
 export default function Page() {
-  // Splash screen enabled by default
-  const [splashDone, setSplashDone] = useState(false)
   const [landingDone, setLandingDone] = useState(false)
+  const [showTransition, setShowTransition] = useState(false)
   const [view, setView] = useState<AppView>("signin")
   const [displayedView, setDisplayedView] = useState<AppView>("signin")
   const [opacity, setOpacity] = useState(0)
   const [selectedTopic, setSelectedTopic] = useState("")
   const [proficiency, setProficiency] = useState(0)
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
-  const splashFired = useRef(false)
   const transitioning = useRef(false)
 
-  const handleSplashComplete = useCallback(() => {
-    if (splashFired.current) return
-    splashFired.current = true
-    setSplashDone(true)
-    // Fade in the signin view gently
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setOpacity(1)
-      })
-    })
-  }, [])
+  // Transition overlay lifecycle: when showTransition is true, run a short sequence
+  useEffect(() => {
+    if (!showTransition) return
+    const timers: ReturnType<typeof setTimeout>[] = []
+    // Short hold then reveal sign-in
+    timers.push(setTimeout(() => {
+      /* no-op hold */
+    }, 250))
+    timers.push(setTimeout(() => {
+      setShowTransition(false)
+      requestAnimationFrame(() => requestAnimationFrame(() => setOpacity(1)))
+    }, 700))
+    return () => timers.forEach(clearTimeout)
+  }, [showTransition])
 
   function transitionTo(next: AppView) {
     if (transitioning.current) return
     transitioning.current = true
-
-    // Phase 1: fade out
     setOpacity(0)
-
     const onFadeOut = () => {
-      // Phase 2: swap view while invisible
       setView(next)
       setDisplayedView(next)
       window.scrollTo({ top: 0, behavior: "instant" })
-
-      // Phase 3: fade in
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setOpacity(1)
@@ -59,7 +53,6 @@ export default function Page() {
         })
       })
     }
-
     setTimeout(onFadeOut, 600)
   }
 
@@ -86,27 +79,25 @@ export default function Page() {
     transitionTo("browse")
   }
 
-  // Reveal sign-in view immediately when landing is done and splash is skipped
-  useEffect(() => {
-    if (landingDone && splashDone) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setOpacity(1))
-      })
-    }
-  }, [landingDone, splashDone])
-
   return (
     <>
       {!landingDone && (
         <LandingPage
           onComplete={() => {
-            // Ensure splash shows after landing completes
-            setSplashDone(false)
             setLandingDone(true)
+            // start inline transition overlay then reveal sign-in
+            setShowTransition(true)
           }}
         />
       )}
-      {landingDone && !splashDone && <SplashScreen onComplete={handleSplashComplete} />}
+
+      {showTransition && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: '#e8f5e9', transition: 'opacity 0.5s ease' }}>
+          <div className="text-center">
+            <h2 className="text-3xl font-medium" style={{ color: '#2e7d32' }}>StudyPilot</h2>
+          </div>
+        </div>
+      )}
 
       <div
         style={{
@@ -181,3 +172,4 @@ export default function Page() {
     </>
   )
 }
+
