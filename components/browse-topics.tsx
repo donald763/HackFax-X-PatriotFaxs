@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { getCourses, deleteCourse, getCourseMastery, type SavedCourse } from "@/lib/course-store"
 
 const TRENDING_TOPICS = [
   { name: "Machine Learning", count: "12.4k studying" },
@@ -119,10 +120,21 @@ function LeafIcon() {
 
 interface BrowseTopicsProps {
   onSelectTopic: (topic: string) => void
+  onResumeCourse?: (courseId: string, topic: string) => void
 }
 
-export function BrowseTopics({ onSelectTopic }: BrowseTopicsProps) {
+export function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTopicsProps) {
   const [search, setSearch] = useState("")
+  const [savedCourses, setSavedCourses] = useState<SavedCourse[]>([])
+
+  useEffect(() => {
+    setSavedCourses(getCourses())
+  }, [])
+
+  function handleDeleteCourse(id: string) {
+    deleteCourse(id)
+    setSavedCourses(getCourses())
+  }
 
   const filteredCategories = CATEGORIES.map((cat) => ({
     ...cat,
@@ -191,6 +203,79 @@ export function BrowseTopics({ onSelectTopic }: BrowseTopicsProps) {
             )}
           </form>
         </div>
+
+        {/* My Courses */}
+        {savedCourses.length > 0 && search === "" && (
+          <section className="mb-10">
+            <div className="flex items-center gap-2 mb-4">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+              </svg>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground">
+                My Courses
+              </h2>
+              <Badge variant="secondary" className="text-[10px] font-normal ml-1">
+                {savedCourses.length}
+              </Badge>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {savedCourses.map((course) => {
+                const mastery = getCourseMastery(course)
+                const totalSkills = course.levels.reduce((a, l) => a + l.skills.length, 0)
+                const completed = course.levels.reduce((a, l) => a + l.skills.filter((s) => s.status === "completed").length, 0)
+                const circumference = 2 * Math.PI * 18
+
+                return (
+                  <div
+                    key={course.id}
+                    className="group relative rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/40 hover:shadow-md cursor-pointer"
+                    onClick={() => onResumeCourse?.(course.id, course.topic)}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Mini mastery ring */}
+                      <div className="relative h-11 w-11 shrink-0">
+                        <svg viewBox="0 0 44 44" className="h-full w-full -rotate-90">
+                          <circle cx="22" cy="22" r="18" fill="none" stroke="hsl(var(--muted))" strokeWidth="3" />
+                          <circle
+                            cx="22" cy="22" r="18" fill="none"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth="3" strokeLinecap="round"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={circumference * (1 - mastery / 100)}
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-[10px] font-bold text-foreground">{mastery}%</span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{course.topic}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {completed}/{totalSkills} skills completed
+                        </p>
+                        <div className="mt-2 h-1 w-full rounded-full bg-muted overflow-hidden">
+                          <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${mastery}%` }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Delete button */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDeleteCourse(course.id) }}
+                      className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 transition-all"
+                      aria-label="Delete course"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Custom search result - when no categories match */}
         {hasCustomSearch && (

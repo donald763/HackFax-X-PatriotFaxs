@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 130" fill="none">
+  <!-- Head -->
+  <circle cx="40" cy="40" r="12" stroke="#2e7d32" stroke-width="3"/>
+  <!-- Torso (straight line) -->
+  <line x1="50" y1="45" x2="200" y2="55" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+  <!-- Arms (on forearms) -->
+  <line x1="60" y1="48" x2="50" y2="80" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+  <line x1="50" y1="80" x2="50" y2="110" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+  <!-- Legs (straight) -->
+  <line x1="200" y1="55" x2="260" y2="60" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+  <line x1="260" y1="60" x2="260" y2="110" stroke="#2e7d32" stroke-width="3" stroke-linecap="round"/>
+  <!-- Elbow -->
+  <circle cx="50" cy="80" r="4" fill="#2e7d32"/>
+  <!-- Label -->
+  <text x="140" y="125" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#666">Plank</text>
+</svg>
