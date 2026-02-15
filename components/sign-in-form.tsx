@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -50,15 +51,19 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
     setIsLoading(true)
     setError("")
 
-    // Simulate sign-in for now 
-    setTimeout(() => {
-      setIsLoading(false)
-      if (email && password) {
-        onSignIn()
-      } else {
-        setError("Please enter email and password")
-      }
-    }, 1000)
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    })
+
+    setIsLoading(false)
+
+    if (result?.error) {
+      setError("Invalid email or password")
+    } else if (result?.ok) {
+      onSignIn()
+    }
   }
 
   function handleGuest() {
@@ -66,8 +71,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
   }
 
   function handleAuth0() {
-    // Redirect to auth0 login - placeholder
-    window.location.href = "/"
+    signIn("auth0", { callbackUrl: "/" })
   }
 
   return (
@@ -121,7 +125,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
             type="email"
             placeholder="name@example.com"
             value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
             className="h-11"
@@ -145,7 +149,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
             type="password"
             placeholder="Enter your password"
             value={password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
             className="h-11"

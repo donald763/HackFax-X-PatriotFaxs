@@ -21,6 +21,7 @@ export interface SavedLevel {
 }
 
 export interface SavedCourse {
+  matrixData: never[]
   id: string
   topic: string
   materials: string[]
@@ -28,6 +29,7 @@ export interface SavedCourse {
   levels: SavedLevel[]
   createdAt: number
   lastAccessedAt: number
+  deadline?: number
 }
 
 const STORAGE_KEY = "studypilot_courses"

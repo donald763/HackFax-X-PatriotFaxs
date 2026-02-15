@@ -8,57 +8,90 @@ interface Section {
   keyPoints: string[]
 }
 
-interface LessonData {
+interface VideoLessonData {
   title: string
   sections: Section[]
   summary: string
   youtubeSearchQuery?: string
 }
 
-interface LessonViewProps {
-  data: LessonData
+interface VideoLessonViewProps {
+  data: VideoLessonData
   onBack: () => void
   onComplete: () => void
 }
 
-export function LessonView({ data, onBack, onComplete }: LessonViewProps) {
+export function VideoLessonView({ data, onBack, onComplete }: VideoLessonViewProps) {
   const [videoId, setVideoId] = useState<string | null>(null)
   const [videoTitle, setVideoTitle] = useState<string | null>(null)
   const [videoLoading, setVideoLoading] = useState(false)
   const [videoError, setVideoError] = useState<string | null>(null)
 
-  // Fetch YouTube video for lesson
+  // Fetch YouTube video for lesson with smart retry logic
   useEffect(() => {
     if (!data.youtubeSearchQuery) return
 
-    setVideoLoading(true)
-    setVideoError(null)
+    const searchVideo = async () => {
+      setVideoLoading(true)
+      setVideoError(null)
 
-    fetch("/api/youtube-search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        exerciseName: data.title,
-        topic: data.title,
-        isLesson: true,
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Video search failed")
-        return res.json()
-      })
-      .then((result) => {
-        setVideoId(result.videoId)
-        setVideoTitle(result.title)
-      })
-      .catch((err) => {
+      try {
+        // Try 1: Use the pre-generated search query from Gemini
+        let result = await searchWithQuery(data.youtubeSearchQuery!)
+        
+        // Try 2: If that fails, try title alone with more context
+        if (!result) {
+          const fallbackQuery = `${data.title} tutorial explanation`
+          result = await searchWithQuery(fallbackQuery)
+        }
+
+        // Try 3: If still no results, try just the title
+        if (!result) {
+          result = await searchWithQuery(data.title)
+        }
+
+        if (result) {
+          setVideoId(result.videoId)
+          setVideoTitle(result.title)
+        } else {
+          setVideoError("Could not find a related video. Showing lesson content instead.")
+        }
+      } catch (err) {
         console.error("YouTube search error:", err)
-        setVideoError("Could not find a related video")
-      })
-      .finally(() => setVideoLoading(false))
+        setVideoError("Could not find a related video. Showing lesson content instead.")
+      } finally {
+        setVideoLoading(false)
+      }
+    }
+
+    searchVideo()
   }, [data.title, data.youtubeSearchQuery])
+
+  // Helper function to perform a single YouTube search
+  const searchWithQuery = async (query: string): Promise<{ videoId: string; title: string } | null> => {
+    try {
+      const res = await fetch("/api/youtube-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          exerciseName: data.title,
+          customQuery: query, // New parameter for direct query
+          isLesson: true,
+        }),
+      })
+
+      if (!res.ok) return null
+      const result = await res.json()
+      if (result.error) return null
+      return { videoId: result.videoId, title: result.title }
+    } catch (err) {
+      console.error("Search attempt failed:", err)
+      return null
+    }
+  }
+
   return (
-    <div className="mx-auto max-w-2xl px-6 py-8">
+    <div className="mx-auto max-w-3xl px-6 py-8">
       {/* Header */}
       <button
         onClick={onBack}
@@ -73,8 +106,8 @@ export function LessonView({ data, onBack, onComplete }: LessonViewProps) {
       {/* Title */}
       <div className="mb-8">
         <div className="mb-3 flex items-center gap-2">
-          <span className="inline-flex h-6 items-center rounded-full bg-blue-50 px-2.5 text-xs font-medium text-blue-700">
-            Lesson
+          <span className="inline-flex h-6 items-center rounded-full bg-purple-50 px-2.5 text-xs font-medium text-purple-700">
+            Video Lesson
           </span>
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -96,8 +129,8 @@ export function LessonView({ data, onBack, onComplete }: LessonViewProps) {
             <div className="aspect-video bg-muted flex items-center justify-center p-6">
               <div className="text-center">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-2 text-muted-foreground">
-                  <path d="m9.5 8.5 5 5M14.5 8.5l-5 5" />
-                  <rect x="2" y="2" width="20" height="20" rx="2" />
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v4m0 4h.01" />
                 </svg>
                 <p className="text-sm text-muted-foreground">{videoError}</p>
               </div>
@@ -123,7 +156,7 @@ export function LessonView({ data, onBack, onComplete }: LessonViewProps) {
         </div>
       )}
 
-      {/* Sections */}
+      {/* Lesson Content */}
       <div className="space-y-8">
         {data.sections.map((section, i) => (
           <div key={i} className="group">

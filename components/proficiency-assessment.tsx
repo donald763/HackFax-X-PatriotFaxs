@@ -142,9 +142,10 @@ function XCircleIcon() {
 interface ProficiencyAssessmentProps {
   topic: string
   onComplete: (proficiency: number) => void
+  onBack?: () => void
 }
 
-export function ProficiencyAssessment({ topic, onComplete }: ProficiencyAssessmentProps) {
+export function ProficiencyAssessment({ topic, onComplete, onBack }: ProficiencyAssessmentProps) {
   const [mode, setMode] = useState<"choose" | "confidence" | "quiz" | "quizResult">("choose")
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
   const [quizIndex, setQuizIndex] = useState(0)
@@ -179,7 +180,7 @@ export function ProficiencyAssessment({ topic, onComplete }: ProficiencyAssessme
   }
 
   function getQuizScore() {
-    return quizAnswers.reduce(
+    return quizAnswers.reduce<number>(
       (score, answer, idx) => score + (answer === quiz[idx]?.correct ? 1 : 0),
       0
     )
@@ -199,6 +200,18 @@ export function ProficiencyAssessment({ topic, onComplete }: ProficiencyAssessme
     return (
       <div className="flex min-h-svh items-center justify-center bg-background px-6 py-12">
         <div className="w-full max-w-md">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
+              </svg>
+              Back to topics
+            </button>
+          )}
           <div className="mb-10 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
               <BrainIcon />

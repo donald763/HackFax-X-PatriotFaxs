@@ -11,12 +11,19 @@ import {
   createCourseId,
   getCourseMastery,
 } from "@/lib/course-store"
+import { addEvent } from "@/lib/calendar-store"
 import { LessonView } from "@/components/course/lesson-view"
+import { VideoLessonView } from "@/components/course/video-lesson-view"
 import { FlashcardView } from "@/components/course/flashcard-view"
 import { QuizView } from "@/components/course/quiz-view"
 import { SummaryView } from "@/components/course/summary-view"
 import { PracticeView } from "@/components/course/practice-view"
+import { LiveDemoView } from "@/components/course/live-demo-view"
+import { PracticeExamView } from "@/components/course/practice-exam-view"
 import { ContentLoader } from "@/components/course/content-loader"
+import { PatriotAIChatbot } from "@/components/patriot-ai-chatbot"
+import MatrixCalendar from "@/components/matrix-calendar"
+import { KnowledgeTree } from "@/components/knowledge-tree"
 
 // Icons
 function CheckIcon() {
@@ -70,6 +77,7 @@ const typeColors: Record<string, string> = {
   quiz: "bg-amber-50 text-amber-700",
   summary: "bg-teal-50 text-teal-700",
   practice: "bg-orange-50 text-orange-700",
+  "live-demo": "bg-emerald-50 text-emerald-700",
 }
 
 interface SkillRoadmapProps {
@@ -78,16 +86,19 @@ interface SkillRoadmapProps {
   proficiency?: number
   courseId?: string // pass to resume an existing course
   onBack: () => void
+  attachments?: { data: string; mimeType: string; name: string }[]
 }
 
-export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: existingCourseId, onBack }: SkillRoadmapProps) {
+export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: existingCourseId, onBack, attachments = [] }: SkillRoadmapProps) {
   const [course, setCourse] = useState<SavedCourse | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [loadingMessage, setLoadingMessage] = useState("Analyzing your proficiency level...")
   const [contentGenProgress, setContentGenProgress] = useState<{ current: number; total: number; name: string } | null>(null)
   const [revealedLevels, setRevealedLevels] = useState(0)
   const [activeSkill, setActiveSkill] = useState<{ levelIdx: number; skillIdx: number } | null>(null)
+  const [showPracticeExam, setShowPracticeExam] = useState(false)
   const fetchRef = useRef(false)
+  // deadline prompt removed — generation proceeds without intermediate prompt
 
   // Load existing course or generate new one
   useEffect(() => {
@@ -109,11 +120,12 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
       } catch {}
     }
 
-    // Generate new course via SSE stream
+    // Generate a new course immediately when no existing course id
     generateCourse()
   }, [topic, materials, proficiency, existingCourseId])
 
-  async function generateCourse() {
+  async function generateCourse(deadline?: number) {
+    setLoading(true)
     const courseObj: SavedCourse = {
       id: existingCourseId ?? createCourseId(),
       topic,
@@ -122,13 +134,15 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
       levels: [],
       createdAt: Date.now(),
       lastAccessedAt: Date.now(),
+      ...(deadline ? { deadline } : {}),
+      matrixData: []
     }
 
     try {
       const res = await fetch("/api/generate-course", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, materials, proficiency }),
+        body: JSON.stringify({ topic, materials, proficiency, attachments }),
       })
 
       if (!res.ok || !res.body) throw new Error("Stream failed")
@@ -180,35 +194,44 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
     saveCourse(courseObj)
     setCourse(courseObj)
     setLoading(false)
+    // If a deadline was provided elsewhere, add it to the calendar
+    try {
+      if ((courseObj as any).deadline) {
+        const start = new Date((courseObj as any).deadline)
+        const end = new Date(start.getTime() + 60 * 60 * 1000)
+        addEvent({ title: `Deadline: ${topic}`, start: start.toISOString(), end: end.toISOString(), courseId: courseObj.id, recurrence: "none" })
+      }
+    } catch {}
+
   }
 
-  function handleStreamEvent(event: string, data: any, courseObj: SavedCourse) {
+  function handleStreamEvent(event: string, data: any, courseDraft: SavedCourse) {
     switch (event) {
       case "phase":
         setLoadingMessage(data.message)
         break
       case "roadmap":
-        courseObj.levels = (data.levels ?? []).map((l: any) => ({
+        courseDraft.levels = (data.levels ?? []).map((l: any) => ({
           ...l,
           skills: l.skills.map((s: any) => ({ ...s, content: null })),
         }))
         // Show roadmap immediately while content generates
-        setCourse({ ...courseObj })
+        setCourse({ ...courseDraft })
         setLoading(false)
         break
       case "progress":
         setContentGenProgress({ current: data.current, total: data.total, name: data.skillName })
         break
       case "content":
-        if (courseObj.levels[data.levelIdx]?.skills[data.skillIdx]) {
-          courseObj.levels[data.levelIdx].skills[data.skillIdx].content = data.content
-          setCourse({ ...courseObj })
-          saveCourse({ ...courseObj })
+        if (courseDraft.levels[data.levelIdx]?.skills[data.skillIdx]) {
+          courseDraft.levels[data.levelIdx].skills[data.skillIdx].content = data.content
+          setCourse({ ...courseDraft })
+          saveCourse({ ...courseDraft })
         }
         break
       case "done":
         setContentGenProgress(null)
-        saveCourse({ ...courseObj })
+        saveCourse({ ...courseDraft })
         break
     }
   }
@@ -292,9 +315,41 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
     }
   }
 
+  // Practice exam view
+  if (showPracticeExam && course) {
+    const allSkills = course.levels.flatMap((level) =>
+      level.skills.map((skill) => ({
+        name: skill.name,
+        completed: skill.status === "completed",
+      }))
+    )
+
+    return (
+      <div className="flex min-h-svh bg-background">
+        <div className="flex-1 overflow-auto">
+          <div className="min-h-svh bg-background">
+            <PracticeExamView
+              topic={topic}
+              skills={allSkills}
+              onBack={() => setShowPracticeExam(false)}
+              onComplete={(score) => {
+                console.log("Exam completed with score:", score)
+                setShowPracticeExam(false)
+              }}
+            />
+          </div>
+        </div>
+        <PatriotAIChatbot variant="sidebar" />
+      </div>
+    )
+  }
+
   // Active content view
   if (activeSkill && course) {
-    const skill = course.levels[activeSkill.levelIdx].skills[activeSkill.skillIdx]
+    const skill = course.levels[activeSkill.levelIdx]?.skills[activeSkill.skillIdx]
+    if (!skill) {
+      return null
+    }
     const viewProps = {
       onBack: () => setActiveSkill(null),
       onComplete: handleContentComplete,
@@ -302,24 +357,39 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
 
     // If content is pre-generated, use it directly
     if (skill.content?.data) {
-      switch (skill.type) {
-        case "flashcards":
-          return <div className="min-h-svh bg-background"><FlashcardView data={skill.content.data} {...viewProps} /></div>
-        case "quiz":
-          return <div className="min-h-svh bg-background"><QuizView data={skill.content.data} {...viewProps} /></div>
-        case "summary":
-          return <div className="min-h-svh bg-background"><SummaryView data={skill.content.data} {...viewProps} /></div>
-        case "practice":
-          return <div className="min-h-svh bg-background"><PracticeView data={skill.content.data} {...viewProps} /></div>
-        default:
-          return <div className="min-h-svh bg-background"><LessonView data={skill.content.data} {...viewProps} /></div>
-      }
+      const courseContent = (
+        <>
+          {skill.type === "flashcards" && <FlashcardView data={skill.content.data} {...viewProps} />}
+          {skill.type === "quiz" && <QuizView data={skill.content.data} {...viewProps} />}
+          {skill.type === "summary" && <SummaryView data={skill.content.data} {...viewProps} />}
+          {skill.type === "practice" && <PracticeView data={skill.content.data} {...viewProps} />}
+          {skill.type === "live-demo" && <LiveDemoView data={skill.content.data} topic={topic} {...viewProps} />}
+          {skill.type === "video-lesson" && <VideoLessonView data={skill.content.data} {...viewProps} />}
+          {!["flashcards", "quiz", "summary", "practice", "live-demo", "video-lesson"].includes(skill.type) && <LessonView data={skill.content.data} {...viewProps} />}
+        </>
+      )
+      
+      return (
+        <div className="flex min-h-svh bg-background">
+          <div className="flex-1 overflow-auto">
+            <div className="min-h-svh bg-background">
+              {courseContent}
+            </div>
+          </div>
+          <PatriotAIChatbot variant="sidebar" />
+        </div>
+      )
     }
 
     // Fallback: generate on-demand
     return (
-      <div className="min-h-svh bg-background">
-        <ContentLoader topic={topic} skillName={skill.name} type={skill.type} {...viewProps} />
+      <div className="flex min-h-svh bg-background">
+        <div className="flex-1 overflow-auto">
+          <div className="min-h-svh bg-background">
+            <ContentLoader topic={topic} skillName={skill.name} type={skill.type} {...viewProps} />
+          </div>
+        </div>
+        <PatriotAIChatbot variant="sidebar" />
       </div>
     )
   }
@@ -357,6 +427,7 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
 
   return (
     <div className="min-h-svh bg-background">
+      {/* deadline prompt removed */}
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
@@ -364,12 +435,7 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
             <button type="button" onClick={onBack} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" aria-label="Go back">
               <ArrowLeftIcon />
             </button>
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <LeafIcon />
-              </div>
-              <span className="text-base font-semibold tracking-tight text-foreground">StudyPilot</span>
-            </div>
+            
           </div>
           <Badge variant="secondary" className="font-normal text-xs">
             {totalCompleted}/{totalSkills} completed
@@ -377,39 +443,73 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
         </div>
       </header>
 
-      <div className="mx-auto max-w-4xl px-6 py-8">
+      <div className="mx-auto max-w-4xl px-6 py-6">
         {/* Title + Mastery */}
-        <div className="mb-10 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <MapIcon />
           </div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground text-balance">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground text-balance">
             {topic}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
             {totalSkills} skills across {course.levels.length} levels
           </p>
 
+          {/* deadline tracker removed */}
+
           {/* Mastery Ring */}
-          <div className="mx-auto mt-6 flex flex-col items-center gap-2">
-            <div className="relative h-28 w-28">
+          <div className="mx-auto mt-4 flex flex-col items-center gap-2">
+            <div className="relative h-20 w-20">
               <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-                <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
+                <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="5" />
                 <circle
                   cx="50" cy="50" r="42" fill="none"
                   stroke="hsl(var(--primary))"
-                  strokeWidth="6" strokeLinecap="round"
+                  strokeWidth="5" strokeLinecap="round"
                   strokeDasharray={2 * Math.PI * 42}
                   strokeDashoffset={2 * Math.PI * 42 * (1 - mastery / 100)}
                   className="transition-all duration-1000"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-foreground">{mastery}%</span>
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Mastery</span>
+                <span className="text-lg font-bold text-foreground">{mastery}%</span>
+                <span className="text-[8px] font-medium text-muted-foreground uppercase tracking-wider">Mastery</span>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Practice Exam Button - Only for non-fitness topics */}
+        {!isFitnessTopic(topic, materials) && (
+          <div className="mb-6 rounded-xl border-2 border-amber-200 bg-amber-50/50 p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-700">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                    <path d="M12 6v6l4 2" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-semibold text-amber-900">Ready to test your knowledge?</p>
+                  <p className="text-sm text-amber-800">Take a comprehensive practice exam covering all topics in this course</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setShowPracticeExam(true)}
+                className="whitespace-nowrap bg-amber-600 hover:bg-amber-700"
+                size="sm"
+              >
+                Start Exam
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Knowledge Tree */}
+        <div className="mb-6 rounded-xl border border-border bg-card p-5">
+          <KnowledgeTree course={course} onLevelClick={handleSkillClick} />
         </div>
 
         {/* Content generation banner */}
@@ -551,21 +651,13 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
         </div>
 
         {/* Bottom */}
-        <div className="mt-12 flex flex-col items-center gap-3 text-center pb-12">
-          <p className="text-sm text-muted-foreground">Click any available skill to start learning</p>
-          <div className="flex gap-3">
-            <Link href="/practice">
-              <Button variant="outline" className="h-11 px-8 gap-2 font-medium">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
-                Practice Mode
-              </Button>
-            </Link>
-          </div>
-        </div>
+        
       </div>
+
+      {/* PatriotAI Chatbot - Modal variant on roadmap page */}
+      <PatriotAIChatbot variant="modal" />
+      {/* Matrix calendar (separate from course view) */}
+      <MatrixCalendar openLabel="Calendar" />
     </div>
   )
 }
@@ -602,3 +694,36 @@ function generateFallbackLevels(topic: string, materials: string[]): SavedLevel[
     ]},
   ]
 }
+
+// Helper function to detect if a course is fitness/movement related
+function isFitnessTopic(topic: string, materials: string[]): boolean {
+  const fitnesKeywords = [
+    "yoga",
+    "fitness",
+    "exercise",
+    "workout",
+    "pilates",
+    "stretching",
+    "strength",
+    "cardio",
+    "dance",
+    "martial arts",
+    "boxing",
+    "wrestling",
+    "weight training",
+    "gym",
+    "physical",
+    "movement",
+    "pose",
+    "breathing",
+  ]
+
+  const topicLower = topic.toLowerCase()
+  const isFitnessTopic = fitnesKeywords.some((keyword) => topicLower.includes(keyword))
+  const hasFitnessModalities = materials.some((material) =>
+    fitnesKeywords.some((keyword) => material.toLowerCase().includes(keyword))
+  )
+
+  return isFitnessTopic || hasFitnessModalities
+}
+

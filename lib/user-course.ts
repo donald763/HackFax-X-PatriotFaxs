@@ -1,43 +1,20 @@
-// In-memory storage for user course progress
-// In production, this should be replaced with a database
-const userCourseProgress = new Map<string, Map<string, any>>()
+import clientPromise from '@/lib/mongodb';
 
-export async function saveUserCourseProgress(
-  userId: string,
-  courseId: string,
-  progress: any
-): Promise<void> {
-  if (!userCourseProgress.has(userId)) {
-    userCourseProgress.set(userId, new Map())
-  }
-  userCourseProgress.get(userId)!.set(courseId, { ...progress, savedAt: Date.now() })
+export async function saveUserCourseProgress(userId: string, courseId: string, progress: any) {
+  const client = await clientPromise;
+  const db = client.db('hackfax');
+  const collection = db.collection('user_courses');
+  await collection.updateOne(
+    { userId, courseId },
+    { $set: { progress } },
+    { upsert: true }
+  );
 }
 
-export async function getUserCourseProgress(
-  userId: string,
-  courseId: string
-): Promise<any> {
-  const userProgress = userCourseProgress.get(userId)
-  if (!userProgress) {
-    return null
-  }
-  return userProgress.get(courseId) ?? null
-}
-
-export async function getAllUserCourses(userId: string): Promise<any[]> {
-  const userProgress = userCourseProgress.get(userId)
-  if (!userProgress) {
-    return []
-  }
-  return Array.from(userProgress.entries()).map(([courseId, progress]) => ({
-    courseId,
-    ...progress,
-  }))
-}
-
-export async function deleteUserCourseProgress(userId: string, courseId: string): Promise<void> {
-  const userProgress = userCourseProgress.get(userId)
-  if (userProgress) {
-    userProgress.delete(courseId)
-  }
+export async function getUserCourseProgress(userId: string, courseId: string) {
+  const client = await clientPromise;
+  const db = client.db('hackfax');
+  const collection = db.collection('user_courses');
+  const doc = await collection.findOne({ userId, courseId });
+  return doc?.progress || null;
 }

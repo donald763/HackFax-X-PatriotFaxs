@@ -52,24 +52,6 @@ const MATERIALS = [
     ),
   },
   {
-    id: "mindmaps",
-    label: "Mind Maps",
-    description: "Visual concept connections and diagrams",
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="3" />
-        <circle cx="4" cy="6" r="2" />
-        <circle cx="20" cy="6" r="2" />
-        <circle cx="4" cy="18" r="2" />
-        <circle cx="20" cy="18" r="2" />
-        <path d="M9.5 10.5 5.5 7.5" />
-        <path d="M14.5 10.5 18.5 7.5" />
-        <path d="M9.5 13.5 5.5 16.5" />
-        <path d="M14.5 13.5 18.5 16.5" />
-      </svg>
-    ),
-  },
-  {
     id: "problems",
     label: "Practice Problems",
     description: "Hands-on exercises and worked solutions",
@@ -85,9 +67,10 @@ const MATERIALS = [
 interface StudyPreferenceProps {
   topic: string
   onComplete: (preferences: string[]) => void
+  onBack?: () => void
 }
 
-export function StudyPreference({ topic, onComplete }: StudyPreferenceProps) {
+export function StudyPreference({ topic, onComplete, onBack }: StudyPreferenceProps) {
   const [selected, setSelected] = useState<string[]>([])
 
   function toggle(id: string) {
@@ -99,6 +82,18 @@ export function StudyPreference({ topic, onComplete }: StudyPreferenceProps) {
   return (
     <div className="flex min-h-svh items-center justify-center bg-background px-6 py-12">
       <div className="w-full max-w-lg">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
+            </svg>
+            Back to topics
+          </button>
+        )}
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary" aria-hidden="true">
