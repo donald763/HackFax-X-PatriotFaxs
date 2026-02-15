@@ -1,6 +1,23 @@
 "use client"
 
 import { useState } from "react"
+import { useSpeak } from "@/hooks/use-speak"
+
+function VolumeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-muted-foreground group-hover:text-foreground transition-colors">
+      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+    </svg>
+  )
+}
+
+function StopIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-muted-foreground group-hover:text-foreground transition-colors">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+    </svg>
+  )
+}
 
 interface Question {
   question: string
@@ -26,6 +43,7 @@ export function QuizView({ data, onBack, onComplete }: QuizViewProps) {
   const [showResult, setShowResult] = useState(false)
   const [score, setScore] = useState(0)
   const [finished, setFinished] = useState(false)
+  const { speak, stop, isPlaying } = useSpeak()
 
   const question = data.questions[currentQ]
   const total = data.questions.length
@@ -68,9 +86,28 @@ export function QuizView({ data, onBack, onComplete }: QuizViewProps) {
           Quiz
         </span>
       </div>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight text-foreground">
-        {data.title}
-      </h1>
+      <div className="mb-6 group flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          {data.title}
+        </h1>
+        <div
+          onClick={(e) => {
+            e.stopPropagation()
+            isPlaying ? stop() : speak(data.title)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation()
+              isPlaying ? stop() : speak(data.title)
+            }
+          }}
+          className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center h-9 w-9 rounded-md hover:bg-accent cursor-pointer"
+          role="button"
+          tabIndex={0}
+        >
+          {isPlaying ? <StopIcon /> : <VolumeIcon />}
+        </div>
+      </div>
 
       {!finished ? (
         <>
@@ -88,10 +125,29 @@ export function QuizView({ data, onBack, onComplete }: QuizViewProps) {
           </div>
 
           {/* Question */}
-          <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <p className="text-[15px] font-medium leading-relaxed text-foreground">
-              {question.question}
-            </p>
+          <div className="mb-6 rounded-2xl border border-border bg-card p-6 shadow-sm group/question">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-[15px] font-medium leading-relaxed text-foreground">
+                {question.question}
+              </p>
+              <div
+                onClick={(e) => {
+                  e.stopPropagation()
+                  isPlaying ? stop() : speak(question.question)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.stopPropagation()
+                    isPlaying ? stop() : speak(question.question)
+                  }
+                }}
+                className="opacity-0 group-hover/question:opacity-100 transition-opacity flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent cursor-pointer flex-shrink-0"
+                role="button"
+                tabIndex={0}
+              >
+                {isPlaying ? <StopIcon /> : <VolumeIcon />}
+              </div>
+            </div>
           </div>
 
           {/* Options */}
@@ -113,20 +169,39 @@ export function QuizView({ data, onBack, onComplete }: QuizViewProps) {
                   key={i}
                   onClick={() => handleSelect(i)}
                   disabled={showResult}
-                  className={`flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-all ${style}`}
+                  className={`group/option flex w-full items-center justify-between gap-3 rounded-xl border p-4 text-left transition-all ${style}`}
                 >
-                  <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
-                      showResult && i === question.correctIndex
-                        ? "border-green-500 bg-green-500 text-white"
-                        : showResult && i === selectedAnswer
-                          ? "border-red-500 bg-red-500 text-white"
-                          : "border-border text-muted-foreground"
-                    }`}
+                  <div className="flex items-center gap-3">
+                    <span
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold ${
+                        showResult && i === question.correctIndex
+                          ? "border-green-500 bg-green-500 text-white"
+                          : showResult && i === selectedAnswer
+                            ? "border-red-500 bg-red-500 text-white"
+                            : "border-border text-muted-foreground"
+                      }`}
+                    >
+                      {String.fromCharCode(65 + i)}
+                    </span>
+                    <span className="text-sm text-foreground">{option}</span>
+                  </div>
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      isPlaying ? stop() : speak(option)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.stopPropagation()
+                        isPlaying ? stop() : speak(option)
+                      }
+                    }}
+                    className="opacity-0 group-hover/option:opacity-100 transition-opacity flex items-center justify-center h-7 w-7 rounded-md hover:bg-accent cursor-pointer flex-shrink-0"
+                    role="button"
+                    tabIndex={0}
                   >
-                    {String.fromCharCode(65 + i)}
-                  </span>
-                  <span className="text-sm text-foreground">{option}</span>
+                    {isPlaying ? <StopIcon /> : <VolumeIcon />}
+                  </div>
                 </button>
               )
             })}
@@ -135,16 +210,37 @@ export function QuizView({ data, onBack, onComplete }: QuizViewProps) {
           {/* Explanation */}
           {showResult && (
             <div
-              className={`mt-4 rounded-xl border p-4 ${
+              className={`mt-4 rounded-xl border p-4 group/explanation ${
                 isCorrect
                   ? "border-green-200 bg-green-50"
                   : "border-red-200 bg-red-50"
               }`}
             >
-              <p className={`mb-1 text-xs font-semibold ${isCorrect ? "text-green-700" : "text-red-700"}`}>
-                {isCorrect ? "Correct!" : "Incorrect"}
-              </p>
-              <p className="text-sm text-foreground">{question.explanation}</p>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className={`mb-1 text-xs font-semibold ${isCorrect ? "text-green-700" : "text-red-700"}`}>
+                    {isCorrect ? "Correct!" : "Incorrect"}
+                  </p>
+                  <p className="text-sm text-foreground">{question.explanation}</p>
+                </div>
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    isPlaying ? stop() : speak(question.explanation)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.stopPropagation()
+                      isPlaying ? stop() : speak(question.explanation)
+                    }
+                  }}
+                  className="opacity-0 group-hover/explanation:opacity-100 transition-opacity flex items-center justify-center h-7 w-7 rounded-md hover:bg-accent/50 cursor-pointer flex-shrink-0"
+                  role="button"
+                  tabIndex={0}
+                >
+                  {isPlaying ? <StopIcon /> : <VolumeIcon />}
+                </div>
+              </div>
             </div>
           )}
 

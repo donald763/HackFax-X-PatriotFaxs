@@ -1,6 +1,23 @@
 "use client"
 
 import { useState } from "react"
+import { useSpeak } from "@/hooks/use-speak"
+
+function VolumeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-muted-foreground group-hover:text-foreground transition-colors">
+      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+    </svg>
+  )
+}
+
+function StopIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-muted-foreground group-hover:text-foreground transition-colors">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+    </svg>
+  )
+}
 
 interface Card {
   front: string
@@ -22,6 +39,7 @@ export function FlashcardView({ data, onBack, onComplete }: FlashcardViewProps) 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
   const [known, setKnown] = useState<Set<number>>(new Set())
+  const { speak, stop, isPlaying } = useSpeak()
 
   const card = data.cards[currentIndex]
   const total = data.cards.length
@@ -57,9 +75,28 @@ export function FlashcardView({ data, onBack, onComplete }: FlashcardViewProps) 
           Flashcards
         </span>
       </div>
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight text-foreground">
-        {data.title}
-      </h1>
+      <div className="mb-6 group flex items-center justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          {data.title}
+        </h1>
+        <div
+          onClick={(e) => {
+            e.stopPropagation()
+            isPlaying ? stop() : speak(data.title)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation()
+              isPlaying ? stop() : speak(data.title)
+            }
+          }}
+          className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center h-9 w-9 rounded-md hover:bg-accent cursor-pointer"
+          role="button"
+          tabIndex={0}
+        >
+          {isPlaying ? <StopIcon /> : <VolumeIcon />}
+        </div>
+      </div>
 
       {/* Progress */}
       <div className="mb-6 flex items-center gap-3">
@@ -88,7 +125,24 @@ export function FlashcardView({ data, onBack, onComplete }: FlashcardViewProps) 
           }}
         >
           {/* Front */}
-          <div className="rounded-2xl border border-border bg-card p-8 shadow-sm min-h-[220px] flex flex-col items-center justify-center text-center backface-hidden">
+          <div className="group/front rounded-2xl border border-border bg-card p-8 shadow-sm min-h-[220px] flex flex-col items-center justify-center text-center backface-hidden relative">
+            <div
+              onClick={(e) => {
+                e.stopPropagation()
+                isPlaying ? stop() : speak(card.front)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.stopPropagation()
+                  isPlaying ? stop() : speak(card.front)
+                }
+              }}
+              className="absolute top-3 right-3 opacity-0 group-hover/front:opacity-100 transition-opacity flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent cursor-pointer"
+              role="button"
+              tabIndex={0}
+            >
+              {isPlaying ? <StopIcon /> : <VolumeIcon />}
+            </div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Question
             </p>
@@ -102,9 +156,26 @@ export function FlashcardView({ data, onBack, onComplete }: FlashcardViewProps) 
 
           {/* Back */}
           <div
-            className="absolute inset-0 rounded-2xl border-2 border-primary/30 bg-primary/5 p-8 min-h-[220px] flex flex-col items-center justify-center text-center backface-hidden"
+            className="group/back absolute inset-0 rounded-2xl border-2 border-primary/30 bg-primary/5 p-8 min-h-[220px] flex flex-col items-center justify-center text-center backface-hidden relative"
             style={{ transform: "rotateY(180deg)" }}
           >
+            <div
+              onClick={(e) => {
+                e.stopPropagation()
+                isPlaying ? stop() : speak(card.back)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.stopPropagation()
+                  isPlaying ? stop() : speak(card.back)
+                }
+              }}
+              className="absolute top-3 right-3 opacity-0 group-hover/back:opacity-100 transition-opacity flex items-center justify-center h-8 w-8 rounded-md hover:bg-primary/10 cursor-pointer"
+              role="button"
+              tabIndex={0}
+            >
+              {isPlaying ? <StopIcon /> : <VolumeIcon />}
+            </div>
             <p className="mb-2 text-xs font-medium uppercase tracking-wider text-primary">
               Answer
             </p>

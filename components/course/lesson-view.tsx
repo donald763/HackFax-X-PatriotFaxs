@@ -1,6 +1,23 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSpeak } from "@/hooks/use-speak"
+
+function VolumeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-muted-foreground group-hover:text-foreground transition-colors">
+      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+    </svg>
+  )
+}
+
+function StopIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-muted-foreground group-hover:text-foreground transition-colors">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+    </svg>
+  )
+}
 
 interface Section {
   heading: string
@@ -26,6 +43,7 @@ export function LessonView({ data, onBack, onComplete }: LessonViewProps) {
   const [videoTitle, setVideoTitle] = useState<string | null>(null)
   const [videoLoading, setVideoLoading] = useState(false)
   const [videoError, setVideoError] = useState<string | null>(null)
+  const { speak, stop, isPlaying } = useSpeak()
 
   // Fetch YouTube video for lesson
   useEffect(() => {
@@ -77,9 +95,28 @@ export function LessonView({ data, onBack, onComplete }: LessonViewProps) {
             Lesson
           </span>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          {data.title}
-        </h1>
+        <div className="group flex items-center justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {data.title}
+          </h1>
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              isPlaying ? stop() : speak(data.title)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.stopPropagation()
+                isPlaying ? stop() : speak(data.title)
+              }
+            }}
+            className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center h-9 w-9 rounded-md hover:bg-accent cursor-pointer"
+            role="button"
+            tabIndex={0}
+          >
+            {isPlaying ? <StopIcon /> : <VolumeIcon />}
+          </div>
+        </div>
       </div>
 
       {/* YouTube Video Section */}
@@ -127,17 +164,78 @@ export function LessonView({ data, onBack, onComplete }: LessonViewProps) {
       <div className="space-y-8">
         {data.sections.map((section, i) => (
           <div key={i} className="group">
-            <h2 className="mb-3 text-lg font-semibold text-foreground">
-              {section.heading}
-            </h2>
-            <div className="mb-4 text-[15px] leading-[1.7] text-muted-foreground whitespace-pre-line">
-              {section.content}
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold text-foreground">
+                {section.heading}
+              </h2>
+              <div
+                onClick={(e) => {
+                  e.stopPropagation()
+                  isPlaying ? stop() : speak(section.heading)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.stopPropagation()
+                    isPlaying ? stop() : speak(section.heading)
+                  }
+                }}
+                className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent cursor-pointer"
+                role="button"
+                tabIndex={0}
+              >
+                {isPlaying ? <StopIcon /> : <VolumeIcon />}
+              </div>
+            </div>
+            <div className="mb-4 group/content">
+              <div className="flex items-start justify-between gap-3">
+                <div className="text-[15px] leading-[1.7] text-muted-foreground whitespace-pre-line flex-1">
+                  {section.content}
+                </div>
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    isPlaying ? stop() : speak(section.content)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.stopPropagation()
+                      isPlaying ? stop() : speak(section.content)
+                    }
+                  }}
+                  className="opacity-0 group-hover/content:opacity-100 transition-opacity flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent cursor-pointer flex-shrink-0 mt-1"
+                  role="button"
+                  tabIndex={0}
+                >
+                  {isPlaying ? <StopIcon /> : <VolumeIcon />}
+                </div>
+              </div>
             </div>
             {section.keyPoints.length > 0 && (
-              <div className="rounded-xl border border-border bg-card p-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Key Points
-                </p>
+              <div className="rounded-xl border border-border bg-card p-4 group/keypoints">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Key Points
+                  </p>
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const allPoints = section.keyPoints.join(". ")
+                      isPlaying ? stop() : speak(allPoints)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.stopPropagation()
+                        const allPoints = section.keyPoints.join(". ")
+                        isPlaying ? stop() : speak(allPoints)
+                      }
+                    }}
+                    className="opacity-0 group-hover/keypoints:opacity-100 transition-opacity flex items-center justify-center h-7 w-7 rounded-md hover:bg-accent cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                  >
+                    {isPlaying ? <StopIcon /> : <VolumeIcon />}
+                  </div>
+                </div>
                 <ul className="space-y-1.5">
                   {section.keyPoints.map((point, j) => (
                     <li key={j} className="flex gap-2 text-sm text-foreground">
@@ -154,10 +252,29 @@ export function LessonView({ data, onBack, onComplete }: LessonViewProps) {
 
       {/* Summary */}
       {data.summary && (
-        <div className="mt-8 rounded-xl border-2 border-primary/20 bg-primary/5 p-5">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-primary">
-            Summary
-          </p>
+        <div className="mt-8 rounded-xl border-2 border-primary/20 bg-primary/5 p-5 group/summary">
+          <div className="flex items-center justify-between mb-1">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Summary
+            </p>
+            <div
+              onClick={(e) => {
+                e.stopPropagation()
+                isPlaying ? stop() : speak(data.summary)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.stopPropagation()
+                  isPlaying ? stop() : speak(data.summary)
+                }
+              }}
+              className="opacity-0 group-hover/summary:opacity-100 transition-opacity flex items-center justify-center h-7 w-7 rounded-md hover:bg-primary/10 cursor-pointer"
+              role="button"
+              tabIndex={0}
+            >
+              {isPlaying ? <StopIcon /> : <VolumeIcon />}
+            </div>
+          </div>
           <p className="text-sm leading-relaxed text-foreground">{data.summary}</p>
         </div>
       )}
