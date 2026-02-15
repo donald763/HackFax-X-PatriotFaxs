@@ -64,7 +64,7 @@ export default function Sidebar() {
           </div>
           <div className={`overflow-hidden transition-all duration-300 ${expanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
             <span className="text-lg font-bold bg-gradient-to-r from-green-700 to-emerald-700 bg-clip-text text-transparent whitespace-nowrap">
-              Coarsai
+              CoursAI
             </span>
           </div>
         </Link>
