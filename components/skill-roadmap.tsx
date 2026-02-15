@@ -21,6 +21,7 @@ import { LiveDemoView } from "@/components/course/live-demo-view"
 import { ContentLoader } from "@/components/course/content-loader"
 import { PatriotAIChatbot } from "@/components/patriot-ai-chatbot"
 import MatrixCalendar from "@/components/matrix-calendar"
+import { InteractiveKnowledgeTree } from "@/components/mindmap"
 
 // Icons
 function CheckIcon() {
@@ -424,7 +425,30 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
             {totalSkills} skills across {course.levels.length} levels
           </p>
 
-          {/* deadline tracker removed */}
+          {/* Deadline tracker */}
+          {course.deadline && (
+            (() => {
+              const now = Date.now()
+              const due = course.deadline
+              const remaining = due - now
+              const totalSpan = Math.max(due - course.createdAt, 1)
+              const elapsed = Math.max(now - course.createdAt, 0)
+              const pct = Math.min(100, Math.max(0, Math.round((elapsed / totalSpan) * 100)))
+              const days = Math.floor(Math.max(0, remaining) / (1000 * 60 * 60 * 24))
+              const hours = Math.floor((Math.max(0, remaining) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+              return (
+                <div className="mt-3 mx-auto max-w-sm">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="text-sm font-medium">Due in {days}d {hours}h</div>
+                    <div className="text-xs text-muted-foreground">{pct}%</div>
+                  </div>
+                  <div className="mt-2 h-2 w-full rounded-full bg-muted overflow-hidden">
+                    <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )
+            })()
+          )}
 
           {/* Mastery Ring */}
           <div className="mx-auto mt-6 flex flex-col items-center gap-2">
@@ -444,6 +468,19 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
                 <span className="text-2xl font-bold text-foreground">{mastery}%</span>
                 <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Mastery</span>
               </div>
+            </div>
+          </div>
+
+          {/* Knowledge Tree Section */}
+          <div className="mx-auto mt-10 mb-8 max-w-2xl">
+            <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2 justify-center">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
+              </span>
+              Knowledge Tree
+            </h2>
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+              <InteractiveKnowledgeTree topic={topic} />
             </div>
           </div>
         </div>

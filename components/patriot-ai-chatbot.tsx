@@ -115,7 +115,7 @@ export function PatriotAIChatbot({ variant = "modal" }: PatriotAIChatbotProps) {
   }
 
   return (
-    <div className="w-80 border-l border-gray-200 bg-white flex flex-col flex-shrink-0 shadow-lg">
+    <div className="fixed right-0 top-0 h-screen max-h-screen w-80 border-l border-gray-200 bg-white flex flex-col flex-shrink-0 shadow-lg z-50" style={{ height: '100dvh', maxHeight: '100dvh' }}>
       {/* Header */}
       <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex items-center justify-between flex-shrink-0">
         <div className="flex-1">

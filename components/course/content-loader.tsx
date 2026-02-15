@@ -6,6 +6,8 @@ import { FlashcardView } from "./flashcard-view"
 import { QuizView } from "./quiz-view"
 import { SummaryView } from "./summary-view"
 import { PracticeView } from "./practice-view"
+import { InteractiveKnowledgeTree } from "@/components/mindmap"
+import { buildConceptNetTree } from "@/lib/conceptnet-tree"
 
 interface ContentLoaderProps {
   topic: string
@@ -27,14 +29,19 @@ export function ContentLoader({ topic, skillName, type, onBack, onComplete }: Co
 
     async function load() {
       try {
-        const res = await fetch("/api/generate-content", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ topic, skillName, type }),
-        })
-        if (!res.ok) throw new Error(`Failed: ${res.status}`)
-        const json = await res.json()
-        setData(json)
+        if (type === "mindmap") {
+          const tree = await buildConceptNetTree(skillName || topic, 2, 4)
+          setData(tree)
+        } else {
+          const res = await fetch("/api/generate-content", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ topic, skillName, type }),
+          })
+          if (!res.ok) throw new Error(`Failed: ${res.status}`)
+          const json = await res.json()
+          setData(json)
+        }
       } catch (err: any) {
         setError(err.message)
       }
@@ -94,6 +101,8 @@ export function ContentLoader({ topic, skillName, type, onBack, onComplete }: Co
       return <SummaryView {...props} />
     case "practice":
       return <PracticeView {...props} />
+    case "mindmap":
+      return data ? <InteractiveKnowledgeTree root={data} /> : null
     default:
       return <LessonView {...props} />
   }
