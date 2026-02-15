@@ -3,7 +3,16 @@
 // - GEMINI_API_URL  (e.g. https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent)
 // - GEMINI_API_KEY  (Google AI API key)
 
-export async function generateWithGemini(prompt: string): Promise<string> {
+export interface GeminiAttachment {
+  data: string      // base64-encoded file content
+  mimeType: string  // e.g. "image/png", "application/pdf"
+  name: string
+}
+
+export async function generateWithGemini(
+  prompt: string,
+  attachments: GeminiAttachment[] = []
+): Promise<string> {
   const url = process.env.GEMINI_API_URL
   const key = process.env.GEMINI_API_KEY
 
@@ -11,11 +20,25 @@ export async function generateWithGemini(prompt: string): Promise<string> {
     throw new Error("GEMINI_API_URL or GEMINI_API_KEY is not set in environment")
   }
 
+  // Build parts array: file attachments first, then the text prompt
+  const parts: Record<string, unknown>[] = []
+
+  for (const file of attachments) {
+    parts.push({
+      inlineData: {
+        mimeType: file.mimeType,
+        data: file.data,
+      },
+    })
+  }
+
+  parts.push({ text: prompt })
+
   const res = await fetch(`${url}?key=${key}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
+      contents: [{ parts }],
       generationConfig: {
         temperature: 0.7,
         maxOutputTokens: 4096,

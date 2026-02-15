@@ -1,9 +1,11 @@
 "use client"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
+import { signOut } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import { LogOut } from "lucide-react"
 
 interface SidebarProps {
   totalStudyTime: number
@@ -46,20 +48,33 @@ export default function Sidebar({ totalStudyTime, weeklyGoal, currentStreak, sav
 
       {/* Logo */}
       <div className="p-6 border-b border-green-200 dark:border-green-900">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-xl blur-md opacity-60" />
-            <div className="relative h-10 w-10 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 flex items-center justify-center">
-              <span className="text-xl font-bold text-white">C</span>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 flex-1">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-xl blur-md opacity-60" />
+              <div className="relative h-10 w-10 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 flex items-center justify-center">
+                <span className="text-xl font-bold text-white">C</span>
+              </div>
             </div>
+            {!collapsed && (
+              <div>
+                <span className="text-xl font-bold bg-gradient-to-r from-green-700 to-emerald-700 bg-clip-text text-transparent">
+                  Coarsai
+                </span>
+                <p className="text-xs text-gray-500">Learning Assistant</p>
+              </div>
+            )}
           </div>
           {!collapsed && (
-            <div>
-              <span className="text-xl font-bold bg-gradient-to-r from-green-700 to-emerald-700 bg-clip-text text-transparent">
-                Coarsai
-              </span>
-              <p className="text-xs text-gray-500">Learning Assistant</p>
-            </div>
+            <Button
+              onClick={() => signOut({ redirect: true, callbackUrl: "/" })}
+              variant="ghost"
+              size="sm"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           )}
         </div>
       </div>

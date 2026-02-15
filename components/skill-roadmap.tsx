@@ -83,9 +83,10 @@ interface SkillRoadmapProps {
   proficiency?: number
   courseId?: string // pass to resume an existing course
   onBack: () => void
+  attachments?: { data: string; mimeType: string; name: string }[]
 }
 
-export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: existingCourseId, onBack }: SkillRoadmapProps) {
+export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: existingCourseId, onBack, attachments = [] }: SkillRoadmapProps) {
   const [course, setCourse] = useState<SavedCourse | null>(null)
   const [loading, setLoading] = useState(false)
   const [loadingMessage, setLoadingMessage] = useState("Analyzing your proficiency level...")
@@ -130,13 +131,14 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
       createdAt: Date.now(),
       lastAccessedAt: Date.now(),
       ...(deadline ? { deadline } : {}),
+      matrixData: []
     }
 
     try {
       const res = await fetch("/api/generate-course", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, materials, proficiency }),
+        body: JSON.stringify({ topic, materials, proficiency, attachments }),
       })
 
       if (!res.ok || !res.body) throw new Error("Stream failed")
@@ -199,33 +201,33 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
 
   }
 
-  function handleStreamEvent(event: string, data: any, courseObj: SavedCourse) {
+  function handleStreamEvent(event: string, data: any, courseDraft: SavedCourse) {
     switch (event) {
       case "phase":
         setLoadingMessage(data.message)
         break
       case "roadmap":
-        courseObj.levels = (data.levels ?? []).map((l: any) => ({
+        courseDraft.levels = (data.levels ?? []).map((l: any) => ({
           ...l,
           skills: l.skills.map((s: any) => ({ ...s, content: null })),
         }))
         // Show roadmap immediately while content generates
-        setCourse({ ...courseObj })
+        setCourse({ ...courseDraft })
         setLoading(false)
         break
       case "progress":
         setContentGenProgress({ current: data.current, total: data.total, name: data.skillName })
         break
       case "content":
-        if (courseObj.levels[data.levelIdx]?.skills[data.skillIdx]) {
-          courseObj.levels[data.levelIdx].skills[data.skillIdx].content = data.content
-          setCourse({ ...courseObj })
-          saveCourse({ ...courseObj })
+        if (courseDraft.levels[data.levelIdx]?.skills[data.skillIdx]) {
+          courseDraft.levels[data.levelIdx].skills[data.skillIdx].content = data.content
+          setCourse({ ...courseDraft })
+          saveCourse({ ...courseDraft })
         }
         break
       case "done":
         setContentGenProgress(null)
-        saveCourse({ ...courseObj })
+        saveCourse({ ...courseDraft })
         break
     }
   }

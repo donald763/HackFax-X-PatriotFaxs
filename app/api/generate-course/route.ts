@@ -1,15 +1,20 @@
-import { generateWithGemini } from "@/lib/gemini"
+import { generateWithGemini, type GeminiAttachment } from "@/lib/gemini"
 
 // Streams back roadmap first, then content for each available skill
 export async function POST(req: Request) {
-  let body: { topic?: string; materials?: string[]; proficiency?: number }
+  let body: {
+    topic?: string
+    materials?: string[]
+    proficiency?: number
+    attachments?: GeminiAttachment[]
+  }
   try {
     body = await req.json()
   } catch {
     return new Response("Invalid JSON", { status: 400 })
   }
 
-  const { topic, materials = [], proficiency = 1 } = body
+  const { topic, materials = [], proficiency = 1, attachments = [] } = body
   if (!topic) {
     return new Response("Missing topic", { status: 400 })
   }
@@ -32,7 +37,11 @@ export async function POST(req: Request) {
         }
         const profLabel = profLabels[proficiency] ?? "beginner"
 
-        const roadmapPrompt = `You are an expert curriculum designer. Create a personalized learning roadmap for a student studying "${topic}".
+        const attachmentNote = attachments.length > 0
+          ? `\n\nIMPORTANT: The student has attached ${attachments.length} document(s)/file(s) (${attachments.map(a => a.name).join(", ")}). These files are provided alongside this prompt. You MUST base the entire course curriculum on the ACTUAL CONTENT of these attached files. Analyze what the documents contain and create lessons, quizzes, flashcards, etc. that teach the material found IN the documents. Do NOT create a generic course — the course must reflect the specific content from the attachments.`
+          : ""
+
+        const roadmapPrompt = `You are an expert curriculum designer. Create a personalized learning roadmap for a student studying "${topic}".${attachmentNote}
 
 Student profile:
 - Proficiency: ${profLabel} (level ${proficiency}/5)
@@ -68,9 +77,9 @@ Rules:
 - Duration should be realistic (5-20 min per skill)
 - Make it genuinely educational and well-structured for "${topic}"
 - IMPORTANT: If "${topic}" involves physical activity, movement, sports, fitness, yoga, dance, martial arts, or any body-based skill, include "live-demo" type skills where the student practices poses or movements with their camera. These should be specific exercises (e.g., "Warrior II Pose Practice" for yoga, "Defensive Stance Drill" for basketball). Include at least 1-2 live-demo skills per level for physical topics.
-- For non-physical/academic topics, do NOT include live-demo type skills.`
+- For non-physical/academic topics, do NOT include live-demo type skills.${attachments.length > 0 ? "\n- Since documents are attached, base ALL skill names and descriptions on the actual content found in the attached files." : ""}`
 
-        const roadmapRaw = await generateWithGemini(roadmapPrompt)
+        const roadmapRaw = await generateWithGemini(roadmapPrompt, attachments)
         const roadmapCleaned = roadmapRaw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim()
         const roadmap = JSON.parse(roadmapCleaned)
 
@@ -94,7 +103,7 @@ Rules:
           send("progress", { current: i + 1, total: availableSkills.length, skillName: skill.name })
 
           try {
-            const contentData = await generateSkillContent(topic, skill.name, skill.type)
+            const contentData = await generateSkillContent(topic, skill.name, skill.type, attachments)
             send("content", {
               levelIdx: skill.levelIdx,
               skillIdx: skill.skillIdx,
@@ -124,41 +133,45 @@ Rules:
   })
 }
 
-async function generateSkillContent(topic: string, skillName: string, type: string) {
+async function generateSkillContent(topic: string, skillName: string, type: string, attachments: GeminiAttachment[] = []) {
+  const docNote = attachments.length > 0
+    ? ` The student has attached documents — base your content on the ACTUAL CONTENT from those attached files. Use specific information, terms, and concepts found in the documents.`
+    : ""
+
   const prompts: Record<string, string> = {
-    lesson: `You are an expert teacher. Create a comprehensive lesson on "${skillName}" within the context of "${topic}".
+    lesson: `You are an expert teacher. Create a comprehensive lesson on "${skillName}" within the context of "${topic}".${docNote}
 Return ONLY valid JSON, no markdown fences:
 {"title":"${skillName}","sections":[{"heading":"Section title","content":"Detailed explanation in 2-4 paragraphs.","keyPoints":["Key point 1","Key point 2"]}],"summary":"2-3 sentence summary"}
 Create 3-4 sections. Be thorough and engaging.`,
 
-    flashcards: `You are an expert teacher. Create flashcards for "${skillName}" within "${topic}".
+    flashcards: `You are an expert teacher. Create flashcards for "${skillName}" within "${topic}".${docNote}
 Return ONLY valid JSON, no markdown fences:
 {"title":"${skillName}","cards":[{"front":"Question or term","back":"Answer or definition"}]}
 Create 8-12 flashcards mixing terminology, concepts, and application.`,
 
-    quiz: `You are an expert teacher. Create a quiz for "${skillName}" within "${topic}".
+    quiz: `You are an expert teacher. Create a quiz for "${skillName}" within "${topic}".${docNote}
 Return ONLY valid JSON, no markdown fences:
 {"title":"${skillName}","questions":[{"question":"Question text","options":["A","B","C","D"],"correctIndex":0,"explanation":"Why correct"}]}
 Create 5-8 questions of varying difficulty.`,
 
-    summary: `You are an expert teacher. Create a study summary for "${skillName}" within "${topic}".
+    summary: `You are an expert teacher. Create a study summary for "${skillName}" within "${topic}".${docNote}
 Return ONLY valid JSON, no markdown fences:
 {"title":"${skillName}","overview":"2-3 sentences","keyConcepts":[{"term":"Name","definition":"Definition"}],"importantPoints":["Point 1"],"connections":"How this connects to ${topic}"}
 Include 5-8 key concepts and 4-6 points.`,
 
-    practice: `You are an expert teacher. Create practice problems for "${skillName}" within "${topic}".
+    practice: `You are an expert teacher. Create practice problems for "${skillName}" within "${topic}".${docNote}
 Return ONLY valid JSON, no markdown fences:
 {"title":"${skillName}","problems":[{"problem":"Statement","hint":"A hint","solution":"Step-by-step solution"}]}
 Create 4-6 problems of increasing difficulty.`,
 
-    "live-demo": `You are a fitness and movement expert. Create a live practice demo for "${skillName}" within "${topic}".
+    "live-demo": `You are a fitness and movement expert. Create a live practice demo for "${skillName}" within "${topic}".${docNote}
 Return ONLY valid JSON, no markdown fences:
 {"title":"${skillName}","exerciseName":"${skillName}","instructions":"Step-by-step instructions for performing this movement correctly (3-5 sentences)","tips":["Tip 1","Tip 2","Tip 3"],"commonMistakes":["Mistake 1","Mistake 2"],"targetDuration":"30 seconds"}
 Make the instructions clear, specific, and suitable for someone practicing with a camera.`,
   }
 
   const prompt = prompts[type] ?? prompts.lesson
-  const raw = await generateWithGemini(prompt)
+  const raw = await generateWithGemini(prompt, attachments)
   const cleaned = raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim()
   return JSON.parse(cleaned)
 }

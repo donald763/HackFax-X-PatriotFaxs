@@ -24,6 +24,7 @@ export default function Page() {
   const [proficiency, setProficiency] = useState(0)
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
   const [resumeCourseId, setResumeCourseId] = useState<string | undefined>()
+  const [fileAttachments, setFileAttachments] = useState<{ data: string; mimeType: string; name: string }[]>([])
   const splashFired = useRef(false)
   const transitioning = useRef(false)
   const sessionChecked = useRef(false)
@@ -81,9 +82,32 @@ export default function Page() {
     transitionTo("browse")
   }
 
-  function handleSelectTopic(topic: string) {
+  async function handleSelectTopic(topic: string, attachments?: File[]) {
     setSelectedTopic(topic)
     setResumeCourseId(undefined)
+
+    if (attachments && attachments.length > 0) {
+      const converted = await Promise.all(
+        attachments.map(
+          (file) =>
+            new Promise<{ data: string; mimeType: string; name: string }>(
+              (resolve, reject) => {
+                const reader = new FileReader()
+                reader.onload = () => {
+                  const base64 = (reader.result as string).split(",")[1]
+                  resolve({ data: base64, mimeType: file.type, name: file.name })
+                }
+                reader.onerror = reject
+                reader.readAsDataURL(file)
+              }
+            )
+        )
+      )
+      setFileAttachments(converted)
+    } else {
+      setFileAttachments([])
+    }
+
     transitionTo("preference")
   }
 
@@ -199,6 +223,7 @@ export default function Page() {
             proficiency={proficiency}
             courseId={resumeCourseId}
             onBack={handleBackToBrowse}
+            attachments={fileAttachments}
           />
         )}
       </div>
