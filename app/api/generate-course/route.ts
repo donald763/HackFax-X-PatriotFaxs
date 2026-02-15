@@ -63,11 +63,12 @@ Return ONLY valid JSON in this exact format, no markdown, no explanation:
 Rules:
 - First level's first 2-3 skills should have status "available", everything else "locked"
 - Match skill types to the student's preferred materials where possible (${materialsStr})
-- For physical/fitness topics like "${topic}", use "live-demo" type for practical exercises
 - Each level should have 3-5 skills
 - Keep names concise and specific to "${topic}"
 - Duration should be realistic (5-20 min per skill)
-- Make it genuinely educational and well-structured for "${topic}"`
+- Make it genuinely educational and well-structured for "${topic}"
+- IMPORTANT: If "${topic}" involves physical activity, movement, sports, fitness, yoga, dance, martial arts, or any body-based skill, include "live-demo" type skills where the student practices poses or movements with their camera. These should be specific exercises (e.g., "Warrior II Pose Practice" for yoga, "Defensive Stance Drill" for basketball). Include at least 1-2 live-demo skills per level for physical topics.
+- For non-physical/academic topics, do NOT include live-demo type skills.`
 
         const roadmapRaw = await generateWithGemini(roadmapPrompt)
         const roadmapCleaned = roadmapRaw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim()
@@ -150,10 +151,10 @@ Return ONLY valid JSON, no markdown fences:
 {"title":"${skillName}","problems":[{"problem":"Statement","hint":"A hint","solution":"Step-by-step solution"}]}
 Create 4-6 problems of increasing difficulty.`,
 
-    "live-demo": `You are a fitness and movement expert. Create a live practice demo guide for "${skillName}" within "${topic}".
+    "live-demo": `You are a fitness and movement expert. Create a live practice demo for "${skillName}" within "${topic}".
 Return ONLY valid JSON, no markdown fences:
-{"title":"${skillName}","introduction":"Brief intro","steps":[{"step":1,"instruction":"Clear instruction","cues":["Key cue 1"],"commonMistakes":["Mistake 1"]}],"safetyTips":["Safety tip 1"],"progressions":["Easier variant","Advanced variant"],"repSets":"Reps and sets"}
-Create 4-6 detailed steps with form cues and progressions.`,
+{"title":"${skillName}","exerciseName":"${skillName}","instructions":"Step-by-step instructions for performing this movement correctly (3-5 sentences)","tips":["Tip 1","Tip 2","Tip 3"],"commonMistakes":["Mistake 1","Mistake 2"],"targetDuration":"30 seconds"}
+Make the instructions clear, specific, and suitable for someone practicing with a camera.`,
   }
 
   const prompt = prompts[type] ?? prompts.lesson
