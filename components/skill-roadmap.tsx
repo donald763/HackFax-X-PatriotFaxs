@@ -13,6 +13,7 @@ import {
 } from "@/lib/course-store"
 import { addEvent } from "@/lib/calendar-store"
 import { LessonView } from "@/components/course/lesson-view"
+import { VideoLessonView } from "@/components/course/video-lesson-view"
 import { FlashcardView } from "@/components/course/flashcard-view"
 import { QuizView } from "@/components/course/quiz-view"
 import { SummaryView } from "@/components/course/summary-view"
@@ -332,7 +333,8 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
           {skill.type === "summary" && <SummaryView data={skill.content.data} {...viewProps} />}
           {skill.type === "practice" && <PracticeView data={skill.content.data} {...viewProps} />}
           {skill.type === "live-demo" && <LiveDemoView data={skill.content.data} topic={topic} {...viewProps} />}
-          {!["flashcards", "quiz", "summary", "practice", "live-demo"].includes(skill.type) && <LessonView data={skill.content.data} {...viewProps} />}
+          {skill.type === "video-lesson" && <VideoLessonView data={skill.content.data} {...viewProps} />}
+          {!["flashcards", "quiz", "summary", "practice", "live-demo", "video-lesson"].includes(skill.type) && <LessonView data={skill.content.data} {...viewProps} />}
         </>
       )
       
@@ -402,12 +404,7 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
             <button type="button" onClick={onBack} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors" aria-label="Go back">
               <ArrowLeftIcon />
             </button>
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <LeafIcon />
-              </div>
-              <span className="text-base font-semibold tracking-tight text-foreground">StudyPilot</span>
-            </div>
+            
           </div>
           <Badge variant="secondary" className="font-normal text-xs">
             {totalCompleted}/{totalSkills} completed

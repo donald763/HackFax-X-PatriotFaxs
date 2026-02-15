@@ -373,31 +373,12 @@ export default function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTo
 
       <div className="h-full bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 overflow-y-auto px-8 py-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8 max-w-6xl mx-auto">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-2xl blur-xl opacity-40 animate-pulse-glow" />
-                <div className="relative h-14 w-14 rounded-2xl bg-gradient-to-r from-green-600 to-emerald-600 flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-300">
-                  <span className="text-3xl font-bold text-white">C</span>
-                </div>
-              </div>
-              <div>
-                <span className="text-3xl font-bold bg-gradient-to-r from-green-700 to-emerald-700 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
-                  Coarsai
-                </span>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Learn something new today</p>
-              </div>
-            </div>
+          <div className="max-w-4xl mx-auto mb-8 text-center">
+            <h1 className="text-6xl font-extrabold mb-4 bg-gradient-to-r from-green-700 via-emerald-700 to-teal-700 dark:from-green-400 dark:via-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+              CoursAI
+            </h1>
 
-            <Button
-              onClick={() => setShowGenerateModal(true)}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl px-6 py-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-            >
-              <span className="flex items-center gap-2">
-                <SparklesIcon />
-                Generate Course
-              </span>
-            </Button>
+            
           </div>
 
           {/* Search Section with Attachments */}

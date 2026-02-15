@@ -60,7 +60,7 @@ Return ONLY valid JSON in this exact format, no markdown, no explanation:
         {
           "name": "Skill/Lesson Name",
           "description": "Brief 1-sentence description",
-          "type": "lesson|flashcards|quiz|practice|summary|live-demo",
+          "type": "lesson|flashcards|quiz|practice|summary|live-demo|video-lesson",
           "duration": "10 min",
           "status": "available"
         }
@@ -76,6 +76,7 @@ Rules:
 - Keep names concise and specific to "${topic}"
 - Duration should be realistic (5-20 min per skill)
 - Make it genuinely educational and well-structured for "${topic}"
+- ${materials.includes("videos") ? 'IMPORTANT: Include "video-lesson" type skills frequently (2-3 per level) since the student prefers video learning. These should be educational topics that can be explained via YouTube tutorial videos.' : ""}
 - IMPORTANT: Only include "live-demo" type skills if "${topic}" genuinely involves physical movements that the learner will PHYSICALLY PERFORM and that can be demonstrated via camera (e.g., yoga poses, workout exercises, dance choreography, martial arts forms/katas, stretching routines). These should be specific named exercises (e.g., "Warrior II Pose Practice" for yoga, "Basic Squat Form" for fitness). Include 1-2 live-demo skills per level for these topics.
 - Do NOT include live-demo skills for: sports history, sports strategy/theory, nutrition, anatomy, coaching theory, sports management, or any topic that is ABOUT physical activity but doesn't require the learner to physically perform movements on camera.
 - For non-physical/academic topics, do NOT include live-demo type skills.${attachments.length > 0 ? "\n- Since documents are attached, base ALL skill names and descriptions on the actual content found in the attached files." : ""}`
@@ -169,6 +170,18 @@ Create 4-6 problems of increasing difficulty.`,
 Return ONLY valid JSON, no markdown fences:
 {"title":"${skillName}","exerciseName":"${skillName}","instructions":"Step-by-step instructions for performing this movement correctly (3-5 sentences)","tips":["Tip 1","Tip 2","Tip 3"],"commonMistakes":["Mistake 1","Mistake 2"],"targetDuration":"30 seconds","youtubeSearchQuery":"optimized YouTube search query to find a tutorial video for this specific exercise (under 10 words)"}
 Make the instructions clear, specific, and suitable for someone practicing with a camera. The youtubeSearchQuery should help find a clear instructional/tutorial video demonstrating proper form.`,
+
+    "video-lesson": `You are an expert educator creating educational content for "${topic}". Create a video lesson for the topic: "${skillName}".${docNote}
+Return ONLY valid JSON, no markdown fences:
+{"title":"${skillName}","sections":[{"heading":"Section title","content":"Detailed explanation in 2-3 sentences.","keyPoints":["Key point 1","Key point 2"]}],"summary":"2-3 sentence summary","youtubeSearchQuery":"YouTube search query (under 10 words) that finds tutorial/explanation videos"}
+Create 2-3 detailed sections with explanations and key points.
+
+For the youtubeSearchQuery:
+- Combine the topic "${topic}" with the specific skill "${skillName}"
+- Include keywords: "tutorial", "explained", "guide", "how to", or "learn"
+- Example format: "Valorant Agent Roles tutorial" or "React Hooks explained"
+- Be VERY specific - the query should immediately identify relevant videos
+- Make it searchable: use common terms, not obscure phrasing`,
   }
 
   const prompt = prompts[type] ?? prompts.lesson
