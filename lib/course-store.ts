@@ -21,6 +21,7 @@ export interface SavedLevel {
 }
 
 export interface SavedCourse {
+  matrixData: never[]
   id: string
   topic: string
   materials: string[]
