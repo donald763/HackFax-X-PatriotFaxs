@@ -82,7 +82,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
             <LeafIcon />
           </div>
           <span className="text-lg font-semibold tracking-tight text-foreground">
-            Coarsai
+            CoursAI
           </span>
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground text-balance">

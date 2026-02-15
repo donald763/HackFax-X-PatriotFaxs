@@ -139,19 +139,20 @@ export default function Page() {
       {showTransition && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: '#e8f5e9', transition: 'opacity 0.5s ease' }}>
           <div className="text-center">
-            <h2 className="text-3xl font-medium" style={{ color: '#2e7d32' }}>Coarsai</h2>
+            <h2 className="text-3xl font-medium" style={{ color: '#2e7d32' }}>CoursAI</h2>
           </div>
         </div>
       )}
 
-      <div
-        style={{
-          opacity,
-          transition: "opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1)",
-          willChange: "opacity",
-        }}
-      >
-        {displayedView === "signin" && status !== "authenticated" && (
+      {(landingDone || status === "authenticated" || showTransition) && (
+        <div
+          style={{
+            opacity,
+            transition: "opacity 0.65s cubic-bezier(0.4, 0, 0.2, 1)",
+            willChange: "opacity",
+          }}
+        >
+          {displayedView === "signin" && status !== "authenticated" && (
           <main className="flex min-h-svh">
             <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 bg-card">
               <SignInForm onSignIn={handleSignIn} />
@@ -166,7 +167,7 @@ export default function Page() {
                     className="text-lg font-medium leading-relaxed"
                     style={{ color: "#2e7d32cc" }}
                   >
-                    {'"Coarsai transformed my learning journey. With personalized AI tutoring, I mastered subjects I thought were impossible. The adaptive learning curves to my pace perfectly."'}
+                    {'"CoursAI transformed my learning journey. With personalized AI tutoring, I mastered subjects I thought were impossible. The adaptive learning curves to my pace perfectly."'}
                   </p>
                   <footer className="text-sm" style={{ color: "#2e7d3299" }}>
                     <span className="font-medium" style={{ color: "#2e7d32" }}>
@@ -188,32 +189,33 @@ export default function Page() {
           </main>
         )}
 
-        {displayedView === "browse" && (
-          <BrowseTopics
-            onSelectTopic={handleSelectTopic}
-            onResumeCourse={handleResumeCourse}
-          />
-        )}
+          {displayedView === "browse" && (
+            <BrowseTopics
+              onSelectTopic={handleSelectTopic}
+              onResumeCourse={handleResumeCourse}
+            />
+          )}
 
-        {displayedView === "preference" && (
-          <StudyPreference
-            topic={selectedTopic}
-            onComplete={handlePreferenceComplete}
-            onBack={handleBackToBrowse}
-          />
-        )}
+          {displayedView === "preference" && (
+            <StudyPreference
+              topic={selectedTopic}
+              onComplete={handlePreferenceComplete}
+              onBack={handleBackToBrowse}
+            />
+          )}
 
-        {displayedView === "roadmap" && (
-          <SkillRoadmap
-            topic={selectedTopic}
-            materials={selectedMaterials}
-            proficiency={1}
-            courseId={resumeCourseId}
-            onBack={handleBackToBrowse}
-            attachments={fileAttachments}
-          />
-        )}
-      </div>
+          {displayedView === "roadmap" && (
+            <SkillRoadmap
+              topic={selectedTopic}
+              materials={selectedMaterials}
+              proficiency={1}
+              courseId={resumeCourseId}
+              onBack={handleBackToBrowse}
+              attachments={fileAttachments}
+            />
+          )}
+        </div>
+      )}
     </>
   )
 }
