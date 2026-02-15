@@ -75,127 +75,44 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
   }
 
   return (
-    <>
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&display=swap');
-
-        @keyframes signin-fade-up {
-          0% {
-            opacity: 0;
-            transform: translateY(14px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        @keyframes signin-soft-float {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-8px);
-          }
-        }
-
-        .signin-reveal {
-          opacity: 0;
-          transform: translateY(14px);
-          animation: signin-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-          animation-delay: var(--delay, 0s);
-        }
-
-        .signin-float {
-          animation: signin-soft-float 6s ease-in-out infinite;
-        }
-
-        .signin-card {
-          transition: transform 280ms ease, box-shadow 280ms ease, border-color 280ms ease;
-        }
-
-        .signin-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 20px 36px rgba(16, 185, 129, 0.2);
-          border-color: rgba(16, 185, 129, 0.5);
-        }
-
-        .signin-field {
-          transition: box-shadow 220ms ease, border-color 220ms ease, background-color 220ms ease;
-        }
-
-        .signin-field:focus-within {
-          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
-          border-color: rgba(16, 185, 129, 0.6);
-          background-color: rgba(236, 253, 245, 0.6);
-        }
-
-        .signin-cta {
-          transition: transform 220ms ease, box-shadow 220ms ease;
-        }
-
-        .signin-cta:hover {
-          transform: translateY(-1px) scale(1.01);
-          box-shadow: 0 14px 28px rgba(5, 150, 105, 0.25);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .signin-reveal,
-          .signin-float {
-            animation: none !important;
-            opacity: 1 !important;
-            transform: none !important;
-          }
-
-          .signin-card,
-          .signin-field,
-          .signin-cta {
-            transition: none !important;
-          }
-        }
-      `}</style>
-      <div className="signin-card relative w-full max-w-sm overflow-hidden rounded-2xl border-2 border-green-200 bg-white/90 p-6 shadow-xl backdrop-blur-sm" style={{ fontFamily: "'Bubblegum Sans', cursive" }}>
-      <div className="signin-float absolute -right-10 -top-10 h-24 w-24 rounded-full bg-emerald-200/50 blur-2xl" />
-      <div className="signin-float absolute -bottom-12 -left-8 h-28 w-28 rounded-full bg-green-200/40 blur-2xl" style={{ animationDelay: "1.5s" }} />
-      <div className="signin-reveal mb-8" style={{ ["--delay" as string]: "0.05s" }}>
+    <div className="w-full max-w-sm">
+      <div className="mb-8">
         <div className="flex items-center gap-2.5 mb-8">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <LeafIcon />
           </div>
-          <span className="bg-gradient-to-r from-green-700 via-emerald-700 to-teal-700 bg-clip-text text-lg font-bold tracking-tight text-transparent">
-            CoursAI
+          <span className="text-lg font-semibold tracking-tight text-foreground">
+            Coarsai
           </span>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground text-balance">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground text-balance">
           Welcome back
         </h1>
-        <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
           {"Sign in to continue your study session"}
         </p>
       </div>
 
       <Button
         variant="outline"
-        className="signin-reveal h-11 w-full gap-3 rounded-xl border-green-200 bg-white font-medium hover:bg-green-50"
+        className="w-full h-11 gap-3 font-medium"
         type="button"
         onClick={handleAuth0}
-        style={{ ["--delay" as string]: "0.14s" }}
       >
         <GoogleIcon />
         Continue with Google
       </Button>
 
-      <div className="signin-reveal relative my-5" style={{ ["--delay" as string]: "0.2s" }}>
+      <div className="relative my-5">
         <Separator />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-3 text-xs uppercase tracking-widest text-muted-foreground">
           or
         </span>
       </div>
 
-      <form onSubmit={handleSubmit} className="signin-reveal flex flex-col gap-4" style={{ ["--delay" as string]: "0.25s" }}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 border border-red-200">
             {error}
           </div>
         )}
@@ -211,7 +128,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="signin-field h-11 rounded-xl border-green-200 focus-visible:ring-green-500"
+            className="h-11"
           />
         </div>
 
@@ -222,7 +139,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
             </Label>
             <a
               href="#"
-              className="text-xs font-medium text-muted-foreground transition-colors hover:text-green-700"
+              className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               Forgot password?
             </a>
@@ -235,41 +152,39 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
-            className="signin-field h-11 rounded-xl border-green-200 focus-visible:ring-green-500"
+            className="h-11"
           />
         </div>
 
         <Button
           type="submit"
-          className="signin-cta mt-1 h-11 w-full rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 font-medium text-white hover:from-green-700 hover:to-emerald-700"
+          className="w-full h-11 mt-1 font-medium"
           disabled={isLoading}
         >
           {isLoading ? "Signing in..." : "Sign in"}
         </Button>
       </form>
 
-      <div className="signin-reveal relative my-5" style={{ ["--delay" as string]: "0.35s" }}>
+      <div className="relative my-5">
         <Separator />
       </div>
 
       <Button
         variant="outline"
-        className="signin-cta signin-reveal h-11 w-full gap-2.5 rounded-xl border-dashed border-green-300 font-medium text-green-700 transition-colors hover:border-green-500 hover:bg-green-50 hover:text-green-800"
+        className="w-full h-11 gap-2.5 font-medium border-dashed border-primary/30 text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/50 transition-colors"
         type="button"
         onClick={handleGuest}
-        style={{ ["--delay" as string]: "0.42s" }}
       >
         <UserIcon />
         Continue as Guest
       </Button>
 
-      <p className="signin-reveal mt-6 text-center text-sm text-gray-600" style={{ ["--delay" as string]: "0.48s" }}>
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         {"Don't have an account? "}
-        <a href="#" className="font-medium text-green-700 underline-offset-4 hover:underline">
+        <a href="#" className="font-medium text-primary hover:underline underline-offset-4">
           Create an account
         </a>
       </p>
-      </div>
-    </>
+    </div>
   )
 }

@@ -94,7 +94,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
             willChange: "opacity, transform",
           }}
         >
-          CoursAI
+          Coarsai
         </h1>
 
         <p
