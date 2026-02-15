@@ -333,17 +333,6 @@ export default function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTo
                                     {mastery}%
                                   </span>
                                 </div>
-                                <svg width="100%" height="100%" viewBox="0 0 100 10">
-  <defs>
-    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stopColor="#059669" />
-      <stop offset="100%" stopColor="#10B981" />
-    </linearGradient>
-  </defs>
-
-  <rect width="100" height="10" fill="url(#greenGradient)" />
-</svg>
-
                               </div>
                               <div>
                                 <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{course.topic}</h3>
