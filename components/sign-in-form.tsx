@@ -75,27 +75,31 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
   }
 
   return (
-    <div className="w-full max-w-sm">
+    <>
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&display=swap');
+      `}</style>
+      <div className="w-full max-w-sm rounded-2xl border-2 border-green-200 bg-white/90 p-6 shadow-xl backdrop-blur-sm" style={{ fontFamily: "'Bubblegum Sans', cursive" }}>
       <div className="mb-8">
         <div className="flex items-center gap-2.5 mb-8">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white">
             <LeafIcon />
           </div>
-          <span className="text-lg font-semibold tracking-tight text-foreground">
+          <span className="bg-gradient-to-r from-green-700 via-emerald-700 to-teal-700 bg-clip-text text-lg font-bold tracking-tight text-transparent">
             CoursAI
           </span>
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground text-balance">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground text-balance">
           Welcome back
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+        <p className="mt-2 text-sm text-gray-600 leading-relaxed">
           {"Sign in to continue your study session"}
         </p>
       </div>
 
       <Button
         variant="outline"
-        className="w-full h-11 gap-3 font-medium"
+        className="w-full h-11 gap-3 rounded-xl border-green-200 bg-white font-medium hover:bg-green-50"
         type="button"
         onClick={handleAuth0}
       >
@@ -112,7 +116,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         {error && (
-          <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 border border-red-200">
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </div>
         )}
@@ -128,7 +132,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="email"
-            className="h-11"
+            className="h-11 rounded-xl border-green-200 focus-visible:ring-green-500"
           />
         </div>
 
@@ -139,7 +143,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
             </Label>
             <a
               href="#"
-              className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+              className="text-xs font-medium text-muted-foreground transition-colors hover:text-green-700"
             >
               Forgot password?
             </a>
@@ -152,13 +156,13 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
-            className="h-11"
+            className="h-11 rounded-xl border-green-200 focus-visible:ring-green-500"
           />
         </div>
 
         <Button
           type="submit"
-          className="w-full h-11 mt-1 font-medium"
+          className="mt-1 h-11 w-full rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 font-medium text-white hover:from-green-700 hover:to-emerald-700"
           disabled={isLoading}
         >
           {isLoading ? "Signing in..." : "Sign in"}
@@ -171,7 +175,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
 
       <Button
         variant="outline"
-        className="w-full h-11 gap-2.5 font-medium border-dashed border-primary/30 text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/50 transition-colors"
+        className="h-11 w-full gap-2.5 rounded-xl border-dashed border-green-300 font-medium text-green-700 transition-colors hover:border-green-500 hover:bg-green-50 hover:text-green-800"
         type="button"
         onClick={handleGuest}
       >
@@ -179,12 +183,13 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
         Continue as Guest
       </Button>
 
-      <p className="mt-6 text-center text-sm text-muted-foreground">
+      <p className="mt-6 text-center text-sm text-gray-600">
         {"Don't have an account? "}
-        <a href="#" className="font-medium text-primary hover:underline underline-offset-4">
+        <a href="#" className="font-medium text-green-700 underline-offset-4 hover:underline">
           Create an account
         </a>
       </p>
-    </div>
+      </div>
+    </>
   )
 }
