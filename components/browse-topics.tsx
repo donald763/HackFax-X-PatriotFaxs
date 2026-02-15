@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { getCourses, deleteCourse, getCourseMastery, type SavedCourse } from "@/lib/course-store"
 import Sidebar from "@/components/sidebar"
 import GenerateCourseModal from "@/components/generate-course-modal"
-import StudyHeatmap from "@/components/study-heatmap"
+import StudyHeatmap from "@/components/study-heatmap" // Changed from CalendarHeatmap
 
 const TRENDING_TOPICS = [
   { name: "Machine Learning", count: "12.4k", color: "from-green-600 to-emerald-500" },
@@ -129,7 +129,7 @@ export default function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTo
   }
 
   const totalStudyTime = savedCourses.reduce((acc, course) => {
-    return acc + (course.matrixData?.filter(d => d.intensity > 0).length || 0)
+    return acc + (course.matrixData?.filter((d: any) => d.intensity > 0).length || 0)
   }, 0)
 
   const weeklyGoal = 7
@@ -333,12 +333,17 @@ export default function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTo
                                     {mastery}%
                                   </span>
                                 </div>
-                                <defs>
-                                  <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor="#059669" />
-                                    <stop offset="100%" stopColor="#10B981" />
-                                  </linearGradient>
-                                </defs>
+                                <svg width="100%" height="100%" viewBox="0 0 100 10">
+  <defs>
+    <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stopColor="#059669" />
+      <stop offset="100%" stopColor="#10B981" />
+    </linearGradient>
+  </defs>
+
+  <rect width="100" height="10" fill="url(#greenGradient)" />
+</svg>
+
                               </div>
                               <div>
                                 <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{course.topic}</h3>

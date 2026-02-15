@@ -151,6 +151,12 @@ export default function Sidebar({ totalStudyTime, weeklyGoal, currentStreak, sav
           <div className="space-y-3">
             <div className="relative">
               <svg width="40" height="40" viewBox="0 0 40 40" className="mx-auto">
+                <defs>
+                  <linearGradient id="greenGradientSmall" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#059669" />
+                    <stop offset="100%" stopColor="#10B981" />
+                  </linearGradient>
+                </defs>
                 <circle
                   cx="20"
                   cy="20"
@@ -177,12 +183,6 @@ export default function Sidebar({ totalStudyTime, weeklyGoal, currentStreak, sav
                   {Math.round((totalStudyTime / weeklyGoal) * 100)}%
                 </span>
               </div>
-              <defs>
-                <linearGradient id="greenGradientSmall" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#059669" />
-                  <stop offset="100%" stopColor="#10B981" />
-                </linearGradient>
-              </defs>
             </div>
             <div>
               <p className="text-xs text-gray-500">Streak</p>

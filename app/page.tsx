@@ -1,13 +1,15 @@
 "use client"
 
 import { useCallback, useState, useRef, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 import { LandingPage } from "@/components/landing-page"
 import { SignInForm } from "@/components/sign-in-form"
 import BrowseTopics from "@/components/browse-topics"
 import { StudyPreference } from "@/components/study-preference"
 import { ProficiencyAssessment } from "@/components/proficiency-assessment"
 import { SkillRoadmap } from "@/components/skill-roadmap"
+import { Button } from "@/components/ui/button"
+import { LogOut } from "lucide-react"
 
 type AppView = "signin" | "browse" | "preference" | "assessment" | "roadmap"
 
