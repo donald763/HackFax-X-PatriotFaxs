@@ -25,10 +25,11 @@ function UserIcon() {
 }
 
 interface SignInFormProps {
-  onSignIn: () => void
+  onSignIn?: () => void
+  onGuest?: () => void
 }
 
-export function SignInForm({ onSignIn }: SignInFormProps) {
+export function SignInForm({ onSignIn, onGuest }: SignInFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
