@@ -60,6 +60,12 @@ export function Header() {
 
         {/* CTA */}
         <div className="hidden items-center gap-6 md:flex">
+          <a
+            href="/browse"
+            className="px-6 py-2 text-sm font-medium transition-all rounded-full bg-green-600 text-white hover:bg-green-700 shadow-md hover:shadow-lg"
+          >
+            Sign In
+          </a>
         </div>
 
         {/* Mobile Menu Button */}
@@ -105,7 +111,13 @@ export function Header() {
             >
               About
             </Link>
-
+            <a
+              href="/browse"
+              className="mt-4 block bg-green-600 px-6 py-3 text-center text-lg font-medium text-white rounded-full hover:bg-green-700 transition-all shadow-md hover:shadow-lg"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Sign In
+            </a>
           </nav>
         </div>
       )}

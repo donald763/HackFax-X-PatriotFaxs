@@ -12,7 +12,7 @@ export function GallerySection() {
     { src: "/images (5).webp", alt: "Learning journey start" },
     { src: "/images (6).webp", alt: "Building knowledge foundation" },
     { src: "/images (7).webp", alt: "Mastering concepts" },
-    { src: "/images (8).webp", alt: "Achievement unlocked" },
+    { src: "/images.webp", alt: "Achievement unlocked" },
   ];
 
   const updateTransform = useCallback(() => {

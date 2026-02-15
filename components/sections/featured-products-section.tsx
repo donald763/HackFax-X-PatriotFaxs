@@ -40,7 +40,7 @@ const features = [
     span: "col-span-2 row-span-1", // Wide
   },
   {
-    image: "/images (8).webp",
+    image: "/images.webp",
     span: "col-span-1 row-span-1", // Small
   },
 ];

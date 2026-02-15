@@ -97,6 +97,27 @@ Return ONLY valid JSON, no markdown fences:
 }
 
 Create 4-6 practice problems of increasing difficulty. Make them practical and educational for "${topic}".`,
+
+    "live-demo": `You are a fitness and movement expert. Create a live practice demo guide for "${skillName}" within the context of "${topic}".
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "title": "${skillName}",
+  "introduction": "Brief introduction about the exercise/movement",
+  "steps": [
+    {
+      "step": 1,
+      "instruction": "Clear, detailed instruction",
+      "cues": ["Key cue 1", "Key cue 2"],
+      "commonMistakes": ["Mistake 1", "Mistake 2"]
+    }
+  ],
+  "safetyTips": ["Safety tip 1", "Safety tip 2"],
+  "progressions": ["Easier variation", "Advanced variation"],
+  "repSets": "Recommended reps and sets"
+}
+
+Create 4-6 detailed steps with form cues and progressions for "${skillName}". Include practical guidance for real-time practice.`,
   }
 
   const prompt = prompts[type] ?? prompts.lesson
