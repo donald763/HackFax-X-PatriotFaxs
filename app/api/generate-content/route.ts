@@ -112,6 +112,26 @@ Return ONLY valid JSON, no markdown fences:
 }
 
 Make the instructions clear, specific, and suitable for someone practicing with a camera.`,
+
+    "practice-exam": `You are an expert educator creating a comprehensive practice exam. Generate 10 multiple-choice questions that test understanding of all key concepts in "${topic}".
+
+The exam should cover all these subtopics and skills mentioned in the context. Create questions that progressively increase in difficulty and comprehensiveness.
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "title": "Comprehensive ${skillName}",
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Question text (clear and unambiguous)",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": "The correct option text (must match one of the options exactly)",
+      "explanation": "Detailed explanation of why this is correct and why others are wrong"
+    }
+  ]
+}
+
+Create 10 diverse questions covering all major topics. Ensure variety in question types (conceptual, applied, analytical). Each option should be plausible. Make the exam challenging but fair for someone who has studied the material.`,
   }
 
   const prompt = prompts[type] ?? prompts.lesson
@@ -128,3 +148,4 @@ Make the instructions clear, specific, and suitable for someone practicing with 
     })
   }
 }
+

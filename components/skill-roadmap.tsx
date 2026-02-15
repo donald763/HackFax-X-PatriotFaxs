@@ -19,6 +19,7 @@ import { QuizView } from "@/components/course/quiz-view"
 import { SummaryView } from "@/components/course/summary-view"
 import { PracticeView } from "@/components/course/practice-view"
 import { LiveDemoView } from "@/components/course/live-demo-view"
+import { PracticeExamView } from "@/components/course/practice-exam-view"
 import { ContentLoader } from "@/components/course/content-loader"
 import { PatriotAIChatbot } from "@/components/patriot-ai-chatbot"
 import MatrixCalendar from "@/components/matrix-calendar"
@@ -95,6 +96,7 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
   const [contentGenProgress, setContentGenProgress] = useState<{ current: number; total: number; name: string } | null>(null)
   const [revealedLevels, setRevealedLevels] = useState(0)
   const [activeSkill, setActiveSkill] = useState<{ levelIdx: number; skillIdx: number } | null>(null)
+  const [showPracticeExam, setShowPracticeExam] = useState(false)
   const fetchRef = useRef(false)
   // deadline prompt removed — generation proceeds without intermediate prompt
 
@@ -313,6 +315,35 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
     }
   }
 
+  // Practice exam view
+  if (showPracticeExam && course) {
+    const allSkills = course.levels.flatMap((level) =>
+      level.skills.map((skill) => ({
+        name: skill.name,
+        completed: skill.status === "completed",
+      }))
+    )
+
+    return (
+      <div className="flex min-h-svh bg-background">
+        <div className="flex-1 overflow-auto">
+          <div className="min-h-svh bg-background">
+            <PracticeExamView
+              topic={topic}
+              skills={allSkills}
+              onBack={() => setShowPracticeExam(false)}
+              onComplete={(score) => {
+                console.log("Exam completed with score:", score)
+                setShowPracticeExam(false)
+              }}
+            />
+          </div>
+        </div>
+        <PatriotAIChatbot variant="sidebar" />
+      </div>
+    )
+  }
+
   // Active content view
   if (activeSkill && course) {
     const skill = course.levels[activeSkill.levelIdx]?.skills[activeSkill.skillIdx]
@@ -448,6 +479,33 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
             </div>
           </div>
         </div>
+
+        {/* Practice Exam Button - Only for non-fitness topics */}
+        {!isFitnessTopic(topic, materials) && (
+          <div className="mb-6 rounded-xl border-2 border-amber-200 bg-amber-50/50 p-5">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-1 flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-700">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                    <path d="M12 6v6l4 2" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-semibold text-amber-900">Ready to test your knowledge?</p>
+                  <p className="text-sm text-amber-800">Take a comprehensive practice exam covering all topics in this course</p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setShowPracticeExam(true)}
+                className="whitespace-nowrap bg-amber-600 hover:bg-amber-700"
+                size="sm"
+              >
+                Start Exam
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Knowledge Tree */}
         <div className="mb-6 rounded-xl border border-border bg-card p-5">
@@ -593,20 +651,7 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
         </div>
 
         {/* Bottom */}
-        <div className="mt-12 flex flex-col items-center gap-3 text-center pb-12">
-          <p className="text-sm text-muted-foreground">Click any available skill to start learning</p>
-          <div className="flex gap-3">
-            <Link href={`/practice?topic=${encodeURIComponent(topic)}`}>
-              <Button variant="outline" className="h-11 px-8 gap-2 font-medium">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
-                </svg>
-                Practice Mode
-              </Button>
-            </Link>
-          </div>
-        </div>
+        
       </div>
 
       {/* PatriotAI Chatbot - Modal variant on roadmap page */}
@@ -649,3 +694,36 @@ function generateFallbackLevels(topic: string, materials: string[]): SavedLevel[
     ]},
   ]
 }
+
+// Helper function to detect if a course is fitness/movement related
+function isFitnessTopic(topic: string, materials: string[]): boolean {
+  const fitnesKeywords = [
+    "yoga",
+    "fitness",
+    "exercise",
+    "workout",
+    "pilates",
+    "stretching",
+    "strength",
+    "cardio",
+    "dance",
+    "martial arts",
+    "boxing",
+    "wrestling",
+    "weight training",
+    "gym",
+    "physical",
+    "movement",
+    "pose",
+    "breathing",
+  ]
+
+  const topicLower = topic.toLowerCase()
+  const isFitnessTopic = fitnesKeywords.some((keyword) => topicLower.includes(keyword))
+  const hasFitnessModalities = materials.some((material) =>
+    fitnesKeywords.some((keyword) => material.toLowerCase().includes(keyword))
+  )
+
+  return isFitnessTopic || hasFitnessModalities
+}
+
