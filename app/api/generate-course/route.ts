@@ -76,7 +76,8 @@ Rules:
 - Keep names concise and specific to "${topic}"
 - Duration should be realistic (5-20 min per skill)
 - Make it genuinely educational and well-structured for "${topic}"
-- IMPORTANT: If "${topic}" involves physical activity, movement, sports, fitness, yoga, dance, martial arts, or any body-based skill, include "live-demo" type skills where the student practices poses or movements with their camera. These should be specific exercises (e.g., "Warrior II Pose Practice" for yoga, "Defensive Stance Drill" for basketball). Include at least 1-2 live-demo skills per level for physical topics.
+- IMPORTANT: Only include "live-demo" type skills if "${topic}" genuinely involves physical movements that the learner will PHYSICALLY PERFORM and that can be demonstrated via camera (e.g., yoga poses, workout exercises, dance choreography, martial arts forms/katas, stretching routines). These should be specific named exercises (e.g., "Warrior II Pose Practice" for yoga, "Basic Squat Form" for fitness). Include 1-2 live-demo skills per level for these topics.
+- Do NOT include live-demo skills for: sports history, sports strategy/theory, nutrition, anatomy, coaching theory, sports management, or any topic that is ABOUT physical activity but doesn't require the learner to physically perform movements on camera.
 - For non-physical/academic topics, do NOT include live-demo type skills.${attachments.length > 0 ? "\n- Since documents are attached, base ALL skill names and descriptions on the actual content found in the attached files." : ""}`
 
         const roadmapRaw = await generateWithGemini(roadmapPrompt, attachments)
@@ -166,8 +167,8 @@ Create 4-6 problems of increasing difficulty.`,
 
     "live-demo": `You are a fitness and movement expert. Create a live practice demo for "${skillName}" within "${topic}".${docNote}
 Return ONLY valid JSON, no markdown fences:
-{"title":"${skillName}","exerciseName":"${skillName}","instructions":"Step-by-step instructions for performing this movement correctly (3-5 sentences)","tips":["Tip 1","Tip 2","Tip 3"],"commonMistakes":["Mistake 1","Mistake 2"],"targetDuration":"30 seconds"}
-Make the instructions clear, specific, and suitable for someone practicing with a camera.`,
+{"title":"${skillName}","exerciseName":"${skillName}","instructions":"Step-by-step instructions for performing this movement correctly (3-5 sentences)","tips":["Tip 1","Tip 2","Tip 3"],"commonMistakes":["Mistake 1","Mistake 2"],"targetDuration":"30 seconds","youtubeSearchQuery":"optimized YouTube search query to find a tutorial video for this specific exercise (under 10 words)"}
+Make the instructions clear, specific, and suitable for someone practicing with a camera. The youtubeSearchQuery should help find a clear instructional/tutorial video demonstrating proper form.`,
   }
 
   const prompt = prompts[type] ?? prompts.lesson

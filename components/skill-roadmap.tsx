@@ -21,6 +21,7 @@ import { LiveDemoView } from "@/components/course/live-demo-view"
 import { ContentLoader } from "@/components/course/content-loader"
 import { PatriotAIChatbot } from "@/components/patriot-ai-chatbot"
 import MatrixCalendar from "@/components/matrix-calendar"
+import { KnowledgeTree } from "@/components/knowledge-tree"
 
 // Icons
 function CheckIcon() {
@@ -330,7 +331,8 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
           {skill.type === "quiz" && <QuizView data={skill.content.data} {...viewProps} />}
           {skill.type === "summary" && <SummaryView data={skill.content.data} {...viewProps} />}
           {skill.type === "practice" && <PracticeView data={skill.content.data} {...viewProps} />}
-          {!["flashcards", "quiz", "summary", "practice"].includes(skill.type) && <LessonView data={skill.content.data} {...viewProps} />}
+          {skill.type === "live-demo" && <LiveDemoView data={skill.content.data} topic={topic} {...viewProps} />}
+          {!["flashcards", "quiz", "summary", "practice", "live-demo"].includes(skill.type) && <LessonView data={skill.content.data} {...viewProps} />}
         </>
       )
       
@@ -413,41 +415,46 @@ export function SkillRoadmap({ topic, materials, proficiency = 1, courseId: exis
         </div>
       </header>
 
-      <div className="mx-auto max-w-4xl px-6 py-8">
+      <div className="mx-auto max-w-4xl px-6 py-6">
         {/* Title + Mastery */}
-        <div className="mb-10 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <MapIcon />
           </div>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground text-balance">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-foreground text-balance">
             {topic}
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
             {totalSkills} skills across {course.levels.length} levels
           </p>
 
           {/* deadline tracker removed */}
 
           {/* Mastery Ring */}
-          <div className="mx-auto mt-6 flex flex-col items-center gap-2">
-            <div className="relative h-28 w-28">
+          <div className="mx-auto mt-4 flex flex-col items-center gap-2">
+            <div className="relative h-20 w-20">
               <svg viewBox="0 0 100 100" className="h-full w-full -rotate-90">
-                <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="6" />
+                <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="5" />
                 <circle
                   cx="50" cy="50" r="42" fill="none"
                   stroke="hsl(var(--primary))"
-                  strokeWidth="6" strokeLinecap="round"
+                  strokeWidth="5" strokeLinecap="round"
                   strokeDasharray={2 * Math.PI * 42}
                   strokeDashoffset={2 * Math.PI * 42 * (1 - mastery / 100)}
                   className="transition-all duration-1000"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-foreground">{mastery}%</span>
-                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Mastery</span>
+                <span className="text-lg font-bold text-foreground">{mastery}%</span>
+                <span className="text-[8px] font-medium text-muted-foreground uppercase tracking-wider">Mastery</span>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Knowledge Tree */}
+        <div className="mb-6 rounded-xl border border-border bg-card p-5">
+          <KnowledgeTree course={course} onLevelClick={handleSkillClick} />
         </div>
 
         {/* Content generation banner */}

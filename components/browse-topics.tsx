@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getCourses, deleteCourse, getCourseMastery, type SavedCourse } from "@/lib/course-store"
-import Sidebar from "@/components/sidebar"
 import GenerateCourseModal from "@/components/generate-course-modal"
 import StudyHeatmap from "@/components/study-heatmap"
 
@@ -179,7 +178,6 @@ export default function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTo
   const [attachments, setAttachments] = useState<File[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const trendingRef = useRef<HTMLDivElement>(null)
   const dropZoneRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -265,13 +263,6 @@ export default function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTo
     return '📎'
   }
 
-  const totalStudyTime = savedCourses.reduce((acc, course) => {
-    return acc + (course.matrixData?.filter((d: any) => d.intensity > 0).length || 0)
-  }, 0)
-
-  const weeklyGoal = 7
-  const currentStreak = 5
-
   return (
     <>
       <style jsx global>{`
@@ -328,56 +319,31 @@ export default function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTo
           animation-name: slide-in-from-bottom;
         }
 
-        /* Custom scrollbar for trending section */
-        .trending-scroll::-webkit-scrollbar {
-          height: 6px;
-        }
-        
-        .trending-scroll::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        
-        .trending-scroll::-webkit-scrollbar-thumb {
-          background: #d1d5db;
-          border-radius: 10px;
-        }
-        
-        .trending-scroll::-webkit-scrollbar-thumb:hover {
-          background: #9ca3af;
-        }
-        
-        .dark .trending-scroll::-webkit-scrollbar-thumb {
-          background: #4b5563;
-        }
-        
-        .dark .trending-scroll::-webkit-scrollbar-thumb:hover {
-          background: #6b7280;
-        }
-
         /* Ensure hover effects are not clipped */
         .trending-container {
-          overflow: visible !important;
+          overflow: hidden !important;
           padding-top: 1rem !important;
           padding-bottom: 1rem !important;
           margin-top: -0.5rem !important;
           margin-bottom: -0.5rem !important;
         }
-        
-        .trending-scroll {
-          overflow-x: auto !important;
-          overflow-y: visible !important;
-          padding-top: 1rem !important;
-          padding-bottom: 1rem !important;
-          margin-top: -0.5rem !important;
-          margin-bottom: -0.5rem !important;
+
+        @keyframes marquee-scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
-        
-        .trending-scroll > div {
-          overflow: visible !important;
-          padding-top: 0.5rem !important;
-          padding-bottom: 0.5rem !important;
+
+        .trending-marquee {
+          display: flex;
+          align-items: flex-end;
+          width: max-content;
+          animation: marquee-scroll 60s linear infinite;
         }
-        
+
+        .trending-container:hover .trending-marquee {
+          animation-play-state: paused;
+        }
+
         /* Ensure buttons can expand without clipping */
         .trending-button-wrapper {
           overflow: visible !important;
@@ -405,17 +371,7 @@ export default function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTo
         }
       `}</style>
 
-      <div className="flex h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 fixed inset-0">
-        {/* Sidebar */}
-        <Sidebar 
-          totalStudyTime={totalStudyTime}
-          weeklyGoal={weeklyGoal}
-          currentStreak={currentStreak}
-          savedCoursesCount={savedCourses.length}
-        />
-
-        {/* Main Content */}
-        <div className="flex-1 overflow-y-auto px-8 py-6">
+      <div className="h-full bg-gradient-to-br from-green-50 via-white to-emerald-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 overflow-y-auto px-8 py-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-8 max-w-6xl mx-auto">
             <div className="flex items-center gap-4">
@@ -719,62 +675,28 @@ export default function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTo
               </div>
               
               <div className="relative trending-container">
-                {/* Scroll buttons */}
-                <button 
-                  onClick={() => {
-                    if (trendingRef.current) {
-                      trendingRef.current.scrollBy({ left: -200, behavior: 'smooth' })
-                    }
-                  }}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg hover:scale-110 transition-transform duration-300 hidden md:block"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 18l-6-6 6-6" />
-                  </svg>
-                </button>
-                
-                <div 
-                  ref={trendingRef}
-                  className="trending-scroll overflow-x-auto px-8 md:px-12"
-                  style={{ scrollbarWidth: 'thin', msOverflowStyle: 'auto' }}
-                >
-                  <div className="flex gap-6 min-w-max items-end">
-                    {TRENDING_TOPICS.map((topic, index) => {
-                      // Calculate position in circular pattern
-                      const isEven = index % 2 === 0
-                      const size = isEven ? 'w-24 h-24' : 'w-20 h-20'
-                      const yOffset = isEven ? 'mb-0' : 'mb-8'
-                      
-                      return (
-                        <div key={topic.name} className="trending-button-wrapper">
-                          <button
-                            onClick={() => onSelectTopic(topic.name)}
-                            className={`group relative flex-shrink-0 ${size} rounded-full bg-gradient-to-br ${topic.color} p-[2px] hover:scale-110 transition-all duration-300 hover:-translate-y-2 ${yOffset}`}
-                          >
-                            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                            <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center p-2 text-center text-xs font-medium text-gray-900 dark:text-gray-100 group-hover:bg-transparent group-hover:text-white transition-all duration-300">
-                              <span className="line-clamp-2">{topic.name}</span>
-                            </div>
-                            <div className="absolute -inset-1 rounded-full bg-gradient-to-br ${topic.color} opacity-0 group-hover:opacity-30 blur-md transition-opacity duration-300" />
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
+                <div className="trending-marquee">
+                  {[...TRENDING_TOPICS, ...TRENDING_TOPICS].map((topic, index) => {
+                    const isEven = index % 2 === 0
+                    const size = isEven ? 'w-24 h-24' : 'w-20 h-20'
+                    const yOffset = isEven ? 'mb-0' : 'mb-8'
+
+                    return (
+                      <div key={`${topic.name}-${index}`} className="trending-button-wrapper flex-shrink-0 mx-3">
+                        <button
+                          onClick={() => onSelectTopic(topic.name)}
+                          className={`group relative flex-shrink-0 ${size} rounded-full bg-gradient-to-br ${topic.color} p-[2px] hover:scale-110 transition-all duration-300 hover:-translate-y-2 ${yOffset}`}
+                        >
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 flex items-center justify-center p-2 text-center text-xs font-medium text-gray-900 dark:text-gray-100 group-hover:bg-transparent group-hover:text-white transition-all duration-300">
+                            <span className="line-clamp-2">{topic.name}</span>
+                          </div>
+                          <div className="absolute -inset-1 rounded-full bg-gradient-to-br ${topic.color} opacity-0 group-hover:opacity-30 blur-md transition-opacity duration-300" />
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
-                
-                <button 
-                  onClick={() => {
-                    if (trendingRef.current) {
-                      trendingRef.current.scrollBy({ left: 200, behavior: 'smooth' })
-                    }
-                  }}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg hover:scale-110 transition-transform duration-300 hidden md:block"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
-                </button>
               </div>
             </div>
           )}
@@ -820,10 +742,9 @@ export default function BrowseTopics({ onSelectTopic, onResumeCourse }: BrowseTo
             </div>
           )}
         </div>
-      </div>
 
       {/* Generate Course Modal */}
-      <GenerateCourseModal 
+      <GenerateCourseModal
         isOpen={showGenerateModal}
         onClose={() => setShowGenerateModal(false)}
         onGenerate={(topic) => {

@@ -27,10 +27,11 @@ Return ONLY valid JSON, no markdown fences:
       "keyPoints": ["Key point 1", "Key point 2", "Key point 3"]
     }
   ],
-  "summary": "2-3 sentence summary of the lesson"
+  "summary": "2-3 sentence summary of the lesson",
+  "youtubeSearchQuery": "Best YouTube search query to find a tutorial or explanation video for this topic (under 10 words)"
 }
 
-Create 3-4 sections. Be thorough, accurate, and engaging. Write for someone learning "${topic}".`,
+Create 3-4 sections. Be thorough, accurate, and engaging. Write for someone learning "${topic}". Include a YouTube search query that would find relevant tutorial or educational videos.`,
 
     flashcards: `You are an expert teacher. Create a set of flashcards for "${skillName}" within the context of "${topic}".
 

@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useEffect } from "react"
+
 interface Section {
   heading: string
   content: string
@@ -10,6 +12,7 @@ interface LessonData {
   title: string
   sections: Section[]
   summary: string
+  youtubeSearchQuery?: string
 }
 
 interface LessonViewProps {
@@ -19,6 +22,41 @@ interface LessonViewProps {
 }
 
 export function LessonView({ data, onBack, onComplete }: LessonViewProps) {
+  const [videoId, setVideoId] = useState<string | null>(null)
+  const [videoTitle, setVideoTitle] = useState<string | null>(null)
+  const [videoLoading, setVideoLoading] = useState(false)
+  const [videoError, setVideoError] = useState<string | null>(null)
+
+  // Fetch YouTube video for lesson
+  useEffect(() => {
+    if (!data.youtubeSearchQuery) return
+
+    setVideoLoading(true)
+    setVideoError(null)
+
+    fetch("/api/youtube-search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        exerciseName: data.title,
+        topic: data.title,
+        isLesson: true,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Video search failed")
+        return res.json()
+      })
+      .then((result) => {
+        setVideoId(result.videoId)
+        setVideoTitle(result.title)
+      })
+      .catch((err) => {
+        console.error("YouTube search error:", err)
+        setVideoError("Could not find a related video")
+      })
+      .finally(() => setVideoLoading(false))
+  }, [data.title, data.youtubeSearchQuery])
   return (
     <div className="mx-auto max-w-2xl px-6 py-8">
       {/* Header */}
@@ -43,6 +81,47 @@ export function LessonView({ data, onBack, onComplete }: LessonViewProps) {
           {data.title}
         </h1>
       </div>
+
+      {/* YouTube Video Section */}
+      {data.youtubeSearchQuery && (
+        <div className="mb-8 rounded-xl overflow-hidden border border-border bg-card">
+          {videoLoading ? (
+            <div className="aspect-video bg-muted flex items-center justify-center">
+              <div className="text-center">
+                <div className="inline-flex h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin mb-2" />
+                <p className="text-sm text-muted-foreground">Finding video...</p>
+              </div>
+            </div>
+          ) : videoError ? (
+            <div className="aspect-video bg-muted flex items-center justify-center p-6">
+              <div className="text-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-2 text-muted-foreground">
+                  <path d="m9.5 8.5 5 5M14.5 8.5l-5 5" />
+                  <rect x="2" y="2" width="20" height="20" rx="2" />
+                </svg>
+                <p className="text-sm text-muted-foreground">{videoError}</p>
+              </div>
+            </div>
+          ) : videoId ? (
+            <div className="bg-black">
+              <iframe
+                width="100%"
+                height="480"
+                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+                title={videoTitle || "Tutorial Video"}
+                allowFullScreen
+                className="border-0"
+              />
+              {videoTitle && (
+                <div className="p-4 bg-card border-t border-border">
+                  <p className="text-sm font-medium text-foreground line-clamp-2">{videoTitle}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Tutorial video from YouTube</p>
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+      )}
 
       {/* Sections */}
       <div className="space-y-8">

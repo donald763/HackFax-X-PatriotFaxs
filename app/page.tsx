@@ -6,12 +6,11 @@ import { LandingPage } from "@/components/landing-page"
 import { SignInForm } from "@/components/sign-in-form"
 import BrowseTopics from "@/components/browse-topics"
 import { StudyPreference } from "@/components/study-preference"
-import { ProficiencyAssessment } from "@/components/proficiency-assessment"
 import { SkillRoadmap } from "@/components/skill-roadmap"
 import { Button } from "@/components/ui/button"
 import { LogOut } from "lucide-react"
 
-type AppView = "signin" | "browse" | "preference" | "assessment" | "roadmap"
+type AppView = "signin" | "browse" | "preference" | "roadmap"
 
 export default function Page() {
   const { data: session, status } = useSession()
@@ -21,7 +20,6 @@ export default function Page() {
   const [displayedView, setDisplayedView] = useState<AppView>("signin")
   const [opacity, setOpacity] = useState(0)
   const [selectedTopic, setSelectedTopic] = useState("")
-  const [proficiency, setProficiency] = useState(0)
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
   const [resumeCourseId, setResumeCourseId] = useState<string | undefined>()
   const [fileAttachments, setFileAttachments] = useState<{ data: string; mimeType: string; name: string }[]>([])
@@ -119,11 +117,6 @@ export default function Page() {
 
   function handlePreferenceComplete(preferences: string[]) {
     setSelectedMaterials(preferences)
-    transitionTo("assessment")
-  }
-
-  function handleAssessmentComplete(level: number) {
-    setProficiency(level)
     transitionTo("roadmap")
   }
 
@@ -206,13 +199,7 @@ export default function Page() {
           <StudyPreference
             topic={selectedTopic}
             onComplete={handlePreferenceComplete}
-          />
-        )}
-
-        {displayedView === "assessment" && (
-          <ProficiencyAssessment
-            topic={selectedTopic}
-            onComplete={handleAssessmentComplete}
+            onBack={handleBackToBrowse}
           />
         )}
 
@@ -220,7 +207,7 @@ export default function Page() {
           <SkillRoadmap
             topic={selectedTopic}
             materials={selectedMaterials}
-            proficiency={proficiency}
+            proficiency={1}
             courseId={resumeCourseId}
             onBack={handleBackToBrowse}
             attachments={fileAttachments}
