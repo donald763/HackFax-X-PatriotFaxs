@@ -47,7 +47,7 @@ export function SignInForm({ onSignIn }: SignInFormProps) {
 
   function handleMasonID() {
     // Redirect to GMU Patriot login
-    window.location.href = "https://patriot.gmu.edu"
+    window.location.href = "https://sts.gmu.edu/adfs/ls/?client-request-id=b67797cb-8622-ddd9-9830-0e86ef0ad5f4&username=&wa=wsignin1.0&wtrealm=urn%3afederation%3aMicrosoftOnline&wctx=estsredirect%3d2%26estsrequest%3drQQIARAAjZJPaNNgGMbzLVvXVbd1U0R2KnUMUZrmS5O2KezQrVvXbenW7l8bkfIl-dKmS5ouf_bXgXgYOwju5pwexONAGROGiAfxJNvBXQQdCLspXibiYUc3vCoIDy_vA8_h5fc-Pg9LMVGKvkEyFJ3o5iHPSypDhxCMqCEW0rFQnFPkEM1AyMbiMayycavT5z94uLAXXPv8ZZNuWzvxffy1BZrLhkthxd0G1yqOU7cT4bDpOrppzlKmqmoyjkQ5SjaNsIE0PfwKgEMAvgGw3dBNQ17mMIyEWInmQjHIohCPcSzExiRZZnkWYj5-1NA-lnSdCnM-TEtbxj8bvKqFygauOVvkc4CXhutifyaaqSYXx2YEKE4OLI9O5jUhlXOyzBRbnIDaWLrIjM5Mz4rpbEVIFRkxlaGFpYydMaCupAe0sZqtoRmOFgvDlWIkX5cYbgoX-vRM1dRkY3oWFYb1YiSnqQW69w4aytPykBAdXeLnlULelhjeGjV4QzT0qjgpMNkJriox9Lw0M1iX-uMlxcjxUiE7LywX4TbZ9XdG54B2yVbTKqOatowczazZ-2Ty3-EwpWAVuboTMOu4pimBumWqmo4DZxFdq-ESkmVs259IcNgIvjde8Tb6u64SAeJ6D00mvF6fnzh3p43gWdPZV9-8v_z03YdHI3dfPtg4ftJD7DeFayk2OV1GcgrBPh7CxblUX2ZxSFEHB_NufxqKbAEKGaO4xLvJXj4BNzxgw3Np19PiJf1EkOwfh_uedsNGOlW1KckyF2xs_fCA9Wbidcv_9GTTB7Z9NzlGK-UsvRJF2cKIO4forCVOC1xOlnM5Ja0WswPxKajTxnh5YMcHDi-Ao4txn0fWkWbYndRK8A-EkmPO4lowsRJcNOySLJ9v80h3sR1M3AqenRq8vbq6-raVOG17cbD39f69xydDO37i-EwdxGlHYL2T-A01#"
   }
 
   return (
